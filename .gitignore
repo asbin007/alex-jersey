@@ -1,0 +1,23 @@
+# Dependencies & builds
+node_modules/
+dist/
+dist-ssr/
+
+# Environment
+.env
+.env.local
+*.local
+
+# Tooling / IDE
+.kiro/
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test / coverage
+coverage/
