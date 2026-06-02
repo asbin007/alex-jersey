@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Search } from 'lucide-react'
 import { mockUser } from '@/data/mockData'
-import { Badge } from '@/components/ui/badge'
 import type { User, UserRole } from '@/types'
 
 const mockUsers: User[] = [
