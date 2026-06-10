@@ -14,7 +14,7 @@ const statusVariant: Record<OrderStatus, 'default' | 'success' | 'warning' | 'de
   pending: 'warning',
   confirmed: 'default',
   processing: 'default',
-  shipped: 'outline',
+  ontheway: 'outline',
   delivered: 'success',
   cancelled: 'destructive',
 }
