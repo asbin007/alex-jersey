@@ -1,53 +1,91 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { Review as IReview } from '../types';
+import { Model, DataTypes } from 'sequelize';
+import { sequelize } from '../config/db';
 
-export interface ReviewDocument extends Omit<IReview, '_id'>, Document {}
+export class Review extends Model {
+  public id!: string;
+  public userId!: string;
+  public productId!: string;
+  public rating!: number;
+  public comment!: string;
+  public images!: string[];
+  public isVerifiedPurchase!: boolean;
+  public isApproved!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 
-const reviewSchema = new Schema<ReviewDocument>(
+  public toJSON(): object {
+    const values = { ...this.get() } as any;
+    values._id = values.id;
+    
+    if (values.user) {
+      if (typeof values.user.toJSON === 'function') {
+        values.user = values.user.toJSON();
+      }
+    } else {
+      values.user = values.userId;
+    }
+
+    if (values.product) {
+      if (typeof values.product.toJSON === 'function') {
+        values.product = values.product.toJSON();
+      }
+    } else {
+      values.product = values.productId;
+    }
+
+    return values;
+  }
+}
+
+Review.init(
   {
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    product: {
-      type: Schema.Types.ObjectId,
-      ref: 'Product',
-      required: true,
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
     rating: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 5,
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
     comment: {
-      type: String,
-      required: true,
-      minlength: [10, 'Comment must be at least 10 characters'],
-      trim: true,
+      type: DataTypes.TEXT,
+      allowNull: false,
     },
     images: {
-      type: [String],
-      default: [],
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      defaultValue: [],
+      allowNull: false,
     },
     isVerifiedPurchase: {
-      type: Boolean,
-      default: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
     },
     isApproved: {
-      type: Boolean,
-      default: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
     },
   },
   {
+    sequelize,
+    modelName: 'Review',
+    tableName: 'Reviews',
     timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ['userId', 'productId'],
+      },
+    ],
   }
 );
-
-// Compound unique index: one review per user per product
-reviewSchema.index({ user: 1, product: 1 }, { unique: true });
-
-const Review = mongoose.model<ReviewDocument>('Review', reviewSchema);
-
-export default Review;

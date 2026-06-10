@@ -27,7 +27,7 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
  * Get a single review by ID.
  */
 router.get('/:id', [
-  param('id').isMongoId().withMessage('Valid review ID is required'),
+  param('id').isUUID().withMessage('Valid review ID is required'),
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -52,7 +52,7 @@ router.get('/:id', [
  * Approve a review (sets isApproved to true).
  */
 router.patch('/:id/approve', [
-  param('id').isMongoId().withMessage('Valid review ID is required'),
+  param('id').isUUID().withMessage('Valid review ID is required'),
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -77,7 +77,7 @@ router.patch('/:id/approve', [
  * Delete a review.
  */
 router.delete('/:id', [
-  param('id').isMongoId().withMessage('Valid review ID is required'),
+  param('id').isUUID().withMessage('Valid review ID is required'),
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

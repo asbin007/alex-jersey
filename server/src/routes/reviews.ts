@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { auth } from '../middleware/auth';
 import { adminAuth } from '../middleware/adminAuth';
-import Review from '../models/Review';
 import * as reviewService from '../services/reviewService';
 
 const router = Router();
@@ -16,7 +15,7 @@ const router = Router();
  */
 const createReviewValidation = [
   body('productId')
-    .isMongoId()
+    .isUUID()
     .withMessage('Valid product ID is required'),
   body('rating')
     .isInt({ min: 1, max: 5 })
@@ -71,7 +70,7 @@ router.post('/', auth, createReviewValidation, async (req: Request, res: Respons
  * Get approved reviews for a product (public).
  */
 router.get('/product/:id', [
-  param('id').isMongoId().withMessage('Valid product ID is required'),
+  param('id').isUUID().withMessage('Valid product ID is required'),
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -93,7 +92,7 @@ router.get('/product/:id', [
  * Requires authentication. Admin can delete any review; a customer can only delete their own.
  */
 router.delete('/:id', auth, [
-  param('id').isMongoId().withMessage('Valid review ID is required'),
+  param('id').isUUID().withMessage('Valid review ID is required'),
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -102,14 +101,14 @@ router.delete('/:id', auth, [
   }
 
   try {
-    const review = await Review.findById(req.params.id);
+    const review = await reviewService.getReviewById(req.params.id);
     if (!review) {
       res.status(404).json({ error: 'Review not found' });
       return;
     }
 
     const requestingUser = req.user!;
-    const isOwner = review.user.toString() === requestingUser.userId;
+    const isOwner = review.userId === requestingUser.userId;
     const isAdmin = requestingUser.role === 'admin';
 
     if (!isOwner && !isAdmin) {

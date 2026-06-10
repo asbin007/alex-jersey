@@ -51,6 +51,9 @@ export interface ProductFilters {
   priceMin?: number;
   priceMax?: number;
   jerseyType?: JerseyType;
+  isFeatured?: boolean;
+  isLimitedDrop?: boolean;
+  search?: string;
   sortBy?: 'price' | 'newest' | 'popular';
   page?: number;
   limit?: number;

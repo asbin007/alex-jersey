@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import { User } from '../models/User';
 import { envConfig } from '../config/config';
 import { RegisterDTO, LoginDTO, AuthResponse, DecodedToken } from '../types/dto';
 
@@ -24,10 +24,10 @@ function validatePhone(phone: string): boolean {
 /**
  * Generates a JWT token containing userId and role with 24-hour expiry.
  */
-function generateToken(userId: string, role: 'customer' | 'admin'): string {
-  return jwt.sign({ userId, role }, envConfig.jwtSecret, {
-    expiresIn: TOKEN_EXPIRY,
-  });
+function generateToken(userId: string, role: 'customer' | 'admin' | 'delivery_boy'): string {
+  const secret = envConfig.jwtSecret;
+  if (!secret) throw new Error('JWT secret is not configured');
+  return jwt.sign({ userId, role }, secret, { expiresIn: TOKEN_EXPIRY });
 }
 
 /**
@@ -37,26 +37,21 @@ function generateToken(userId: string, role: 'customer' | 'admin'): string {
 async function register(data: RegisterDTO): Promise<AuthResponse> {
   const { name, email, phone, password } = data;
 
-  // Validate phone format
   if (!validatePhone(phone)) {
     throw new Error('Phone must be a valid Nepal number (10 digits starting with 97 or 98)');
   }
 
-  // Validate password policy
   if (!validatePassword(password)) {
     throw new Error('Password must be at least 8 characters with at least one number');
   }
 
-  // Check if email already exists
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
+  const existingUser = await User.findOne({ where: { email: email.toLowerCase() } });
   if (existingUser) {
     throw new Error('A user with this email already exists');
   }
 
-  // Hash password with bcrypt salt rounds of 12
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  // Create user
   const user = await User.create({
     name,
     email: email.toLowerCase(),
@@ -66,16 +61,15 @@ async function register(data: RegisterDTO): Promise<AuthResponse> {
     isActive: true,
   });
 
-  // Generate JWT token
-  const token = generateToken(user._id.toString(), user.role);
+  const token = generateToken(user.id, user.role);
 
   return {
     token,
     user: {
-      id: user._id.toString(),
+      id: user.id,
       name: user.name,
       email: user.email,
-      phone: user.phone,
+      phone: user.phone ?? '',
       role: user.role,
     },
   };
@@ -88,33 +82,89 @@ async function register(data: RegisterDTO): Promise<AuthResponse> {
 async function login(credentials: LoginDTO): Promise<AuthResponse> {
   const { email, password } = credentials;
 
-  // Find user by email
-  const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user) {
-    throw new Error('User not found');
+  const user = await User.findOne({ where: { email: email.toLowerCase() } });
+  if (!user) throw new Error('User not found');
+
+  if (!user.isActive) throw new Error('Account is deactivated');
+
+  if (!user.passwordHash) {
+    // Account registered via Google — no password set
+    throw new Error('This account uses Google sign-in. Please sign in with Google.');
   }
 
-  // Check if user is active
-  if (!user.isActive) {
-    throw new Error('Account is deactivated');
-  }
-
-  // Compare password
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-  if (!isPasswordValid) {
-    throw new Error('Invalid credentials');
-  }
+  if (!isPasswordValid) throw new Error('Invalid credentials');
 
-  // Generate JWT token
-  const token = generateToken(user._id.toString(), user.role);
+  const token = generateToken(user.id, user.role);
 
   return {
     token,
     user: {
-      id: user._id.toString(),
+      id: user.id,
       name: user.name,
       email: user.email,
-      phone: user.phone,
+      phone: user.phone ?? '',
+      role: user.role,
+    },
+  };
+}
+
+/**
+ * Authenticate or register a user via Google OAuth access token.
+ * Fetches user info from Google, finds or creates the user, and returns a JWT.
+ */
+async function googleLogin(accessToken: string): Promise<AuthResponse> {
+  // Fetch user profile from Google using the access token
+  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!res.ok) {
+    throw new Error('Invalid Google token');
+  }
+
+  const profile = await res.json() as {
+    sub: string;
+    email: string;
+    name: string;
+    picture?: string;
+  };
+
+  if (!profile.email) {
+    throw new Error('Invalid Google token');
+  }
+
+  const { sub: googleId, email, name, picture } = profile;
+
+  let user = await User.findOne({ where: { email: email.toLowerCase() } });
+
+  if (user) {
+    if (!user.googleId) {
+      await user.update({ googleId, avatar: user.avatar || picture || null });
+    }
+    if (!user.isActive) throw new Error('Account is deactivated');
+  } else {
+    user = await User.create({
+      name: name || email.split('@')[0],
+      email: email.toLowerCase(),
+      phone: null,
+      passwordHash: null,
+      googleId,
+      avatar: picture || null,
+      role: 'customer',
+      isActive: true,
+    });
+  }
+
+  const token = generateToken(user.id, user.role);
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone ?? '',
       role: user.role,
     },
   };
@@ -122,19 +172,52 @@ async function login(credentials: LoginDTO): Promise<AuthResponse> {
 
 /**
  * Verifies and decodes a JWT token.
- * Returns the decoded token payload with userId and role.
  */
 function verifyToken(token: string): DecodedToken {
+  const secret = envConfig.jwtSecret;
+  if (!secret) throw new Error('JWT secret is not configured');
   try {
-    const decoded = jwt.verify(token, envConfig.jwtSecret) as DecodedToken;
-    return decoded;
-  } catch (error) {
+    return jwt.verify(token, secret) as unknown as DecodedToken;
+  } catch {
     throw new Error('Invalid or expired token');
   }
+}
+
+/**
+ * Login specifically for delivery boys — validates email+password,
+ * checks role is delivery_boy or admin.
+ */
+async function deliveryLogin(credentials: LoginDTO): Promise<AuthResponse> {
+  const { email, password } = credentials;
+
+  const user = await User.findOne({ where: { email: email.toLowerCase() } });
+  if (!user) throw new Error('User not found');
+  if (!user.isActive) throw new Error('Account is deactivated');
+  if (user.role !== 'delivery_boy' && user.role !== 'admin') {
+    throw new Error('Access denied: delivery portal is for delivery staff only');
+  }
+  if (!user.passwordHash) throw new Error('Invalid credentials');
+
+  const valid = await bcrypt.compare(password, user.passwordHash);
+  if (!valid) throw new Error('Invalid credentials');
+
+  const token = generateToken(user.id, user.role);
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone ?? '',
+      role: user.role,
+    },
+  };
 }
 
 export const authService = {
   register,
   login,
+  googleLogin,
+  deliveryLogin,
   verifyToken,
 };

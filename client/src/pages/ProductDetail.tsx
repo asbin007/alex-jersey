@@ -1,15 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, ShoppingCart, Check, Star, Zap, ChevronLeft, ChevronRight } from 'lucide-react'
-import { mockProducts, mockReviews } from '@/data/mockData'
+import { ArrowLeft, ShoppingCart, Check, Star, Zap, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import ProductCard from '@/components/products/ProductCard'
-import type { Size } from '@/types'
+import type { Size, Product, Review } from '@/types'
+import { fetchProduct, fetchRelatedProducts, fetchProductReviews } from '@/services/productService'
+import { normalizeReview } from '@/lib/normalize'
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { addToCart } = useCart()
-  const product = mockProducts.find(p => p.slug === slug)
+
+  const [product, setProduct] = useState<Product | undefined>(undefined)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [related, setRelated] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [selSize, setSelSize] = useState<Size | ''>('')
   const [custName, setCustName] = useState('')
@@ -18,18 +23,43 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false)
   const [sizeErr, setSizeErr] = useState(false)
 
+  useEffect(() => {
+    if (!slug) return
+    setLoading(true)
+    fetchProduct(slug)
+      .then(async prod => {
+        setProduct(prod)
+        setLoading(false)
+        // Load reviews and related in parallel
+        fetchProductReviews(prod._id)
+          .then((revs: unknown[]) => setReviews(
+            revs.map(r => normalizeReview(r as Record<string, unknown>)).filter(r => r.isApproved)
+          ))
+          .catch(console.error)
+        fetchRelatedProducts(prod._id)
+          .then(setRelated)
+          .catch(console.error)
+      })
+      .catch(err => {
+        console.error(err)
+        setLoading(false)
+      })
+  }, [slug])
+
   if (!product) return (
     <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="text-center">
-        <div className="text-6xl mb-4">😞</div>
-        <p className="text-xl font-black text-white mb-3">Jersey not found</p>
-        <Link to="/products" className="text-[#FFD700] hover:underline">← Back to Shop</Link>
-      </div>
+      {loading ? (
+        <Loader2 className="w-10 h-10 animate-spin text-[#FFD700]" />
+      ) : (
+        <div className="text-center">
+          <div className="text-6xl mb-4">😞</div>
+          <p className="text-xl font-black text-white mb-3">Jersey not found</p>
+          <Link to="/products" className="text-[#FFD700] hover:underline">← Back to Shop</Link>
+        </div>
+      )}
     </div>
   )
 
-  const reviews = mockReviews.filter(r => r.product === product._id && r.isApproved)
-  const related = mockProducts.filter(p => p._id !== product._id && p.team === product.team).slice(0, 4)
   const disc = product.compareAtPrice ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100) : null
 
   const handleAdd = () => {

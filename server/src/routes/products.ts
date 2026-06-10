@@ -16,7 +16,7 @@ router.get('/', getProducts);
 
 // GET /api/products/:id/reviews - Get approved reviews for a product (public)
 router.get('/:id/reviews', [
-  param('id').isMongoId().withMessage('Valid product ID is required'),
+  param('id').isUUID().withMessage('Valid product ID is required'),
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -59,7 +59,7 @@ const createReviewValidation = [
 
 // POST /api/products/:id/reviews - Submit a review (authenticated, must have purchased)
 router.post('/:id/reviews', auth, [
-  param('id').isMongoId().withMessage('Valid product ID is required'),
+  param('id').isUUID().withMessage('Valid product ID is required'),
   ...createReviewValidation,
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);

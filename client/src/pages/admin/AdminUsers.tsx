@@ -1,32 +1,24 @@
-import { useState } from 'react'
-import { Search } from 'lucide-react'
-import { mockUser } from '@/data/mockData'
+import { useState, useEffect } from 'react'
+import { Search, Loader2 } from 'lucide-react'
+import { fetchAdminUsers, updateUserRole } from '@/services/adminService'
 import type { User, UserRole } from '@/types'
 
-const mockUsers: User[] = [
-  mockUser,
-  {
-    ...mockUser,
-    _id: 'u2',
-    name: 'Priya Shrestha',
-    email: 'priya@example.com',
-    phone: '9851234567',
-    role: 'customer',
-    address: { street: 'Lakeside', city: 'Pokhara', district: 'Kaski' },
-  },
-  {
-    ...mockUser,
-    _id: 'u3',
-    name: 'Admin User',
-    email: 'admin@jerseystore.com',
-    phone: '9861234567',
-    role: 'admin',
-  },
-]
-
 export default function AdminUsers() {
-  const [users, setUsers] = useState<User[]>(mockUsers)
+  const [users, setUsers] = useState<User[]>([])
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  const loadUsers = () => {
+    setLoading(true)
+    fetchAdminUsers()
+      .then(setUsers)
+      .catch((err) => console.error("Failed to load users", err))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadUsers()
+  }, [])
 
   const filtered = users.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -34,8 +26,13 @@ export default function AdminUsers() {
     u.phone.includes(search)
   )
 
-  const updateRole = (userId: string, role: UserRole) => {
-    setUsers(prev => prev.map(u => u._id === userId ? { ...u, role } : u))
+  const updateRole = async (userId: string, targetRole: UserRole) => {
+    try {
+      await updateUserRole(userId, targetRole)
+      setUsers(prev => prev.map(u => u._id === userId ? { ...u, role: targetRole } : u))
+    } catch (err) {
+      console.error("Failed to update role", err)
+    }
   }
 
   return (
@@ -59,6 +56,11 @@ export default function AdminUsers() {
       </div>
 
       {/* Table */}
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : (
       <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -110,8 +112,14 @@ export default function AdminUsers() {
               ))}
             </tbody>
           </table>
+          {filtered.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              No users found
+            </div>
+          )}
         </div>
       </div>
+      )}
     </div>
   )
 }

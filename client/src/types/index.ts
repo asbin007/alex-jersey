@@ -1,6 +1,6 @@
 // ============ Enums & Literal Types ============
 
-export type UserRole = 'customer' | 'admin';
+export type UserRole = 'customer' | 'admin' | 'delivery_boy';
 
 export type ProductCategory = 'worldcup' | 'retro' | 'club' | 'streetwear';
 
@@ -8,7 +8,7 @@ export type JerseyType = 'home' | 'away' | 'third' | 'retro' | 'custom';
 
 export type Size = 'S' | 'M' | 'L' | 'XL' | 'XXL';
 
-export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'ontheway' | 'delivered' | 'cancelled';
 
 export type PaymentMethod = 'cod';
 
@@ -97,9 +97,11 @@ export interface Order {
   deliveryCharge: number;
   total: number;
   status: OrderStatus;
+  paymentStatus: 'unpaid' | 'paid';
   paymentMethod: PaymentMethod;
   customer: CustomerInfo;
   whatsappConfirmed: boolean;
+  deliveryBoyId: string | null;
   statusHistory: StatusHistoryEntry[];
   createdAt: string;
   updatedAt: string;

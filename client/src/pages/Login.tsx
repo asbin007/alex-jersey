@@ -1,113 +1,77 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useGoogleLogin } from '@react-oauth/google'
 import { useAuth } from '@/context/AuthContext'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 
 export default function Login() {
-  const { login } = useAuth()
+  const { loginWithGoogle } = useAuth()
   const navigate = useNavigate()
-
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const validate = () => {
-    const errs: Record<string, string> = {}
-    if (!form.email) errs.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Enter a valid email'
-    if (!form.password) errs.password = 'Password is required'
-    return errs
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const errs = validate()
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
-    setLoading(true)
-    try {
-      await login(form.email, form.password)
-      navigate('/')
-    } catch {
-      setErrors({ general: 'Invalid email or password' })
-    } finally {
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setLoading(true)
+      setError('')
+      try {
+        await loginWithGoogle(tokenResponse.access_token)
+        navigate('/')
+      } catch {
+        setError('Sign-in failed. Please try again.')
+        setLoading(false)
+      }
+    },
+    onError: () => {
+      setError('Google sign-in was cancelled or failed.')
       setLoading(false)
-    }
-  }
+    },
+    // popup flow — COOP header set to unsafe-none in vite.config.ts removes the block
+    flow: 'implicit',
+  })
 
   return (
-    <div className="min-h-screen pt-20 flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-black text-lg mx-auto mb-3">
+          <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white font-black text-xl mx-auto mb-4">
             NJ
           </div>
-          <h1 className="text-2xl font-black text-foreground">Welcome Back</h1>
-          <p className="text-sm text-muted-foreground mt-1">Login to your Nepal Jersey account</p>
+          <h1 className="text-3xl font-black text-foreground">Nepal Jersey</h1>
+          <p className="text-sm text-muted-foreground mt-2">Sign in to continue shopping</p>
         </div>
 
-        <div className="bg-card border border-border/50 rounded-2xl p-6">
-          {errors.general && (
-            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
-              {errors.general}
+        <div className="bg-card border border-border/50 rounded-2xl p-8">
+          {error && (
+            <div className="mb-5 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive text-center">
+              {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              placeholder="aarav@example.com"
-              value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              error={errors.email}
-            />
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-sm text-muted-foreground">Continue with your Google account</p>
 
-            <div className="relative">
-              <Input
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={form.password}
-                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                error={errors.password}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-white font-bold rounded-xl"
+            <button
+              onClick={() => handleGoogleLogin()}
               disabled={loading}
+              className="flex items-center justify-center gap-3 w-full px-4 py-2.5 border border-border rounded-lg bg-card hover:bg-muted transition-colors text-sm font-medium text-foreground disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? 'Logging in...' : 'Login'}
-            </Button>
-          </form>
-
-          <div className="mt-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-primary hover:underline font-medium">
-                Register
-              </Link>
-            </p>
+              {/* Google "G" icon */}
+              <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+                <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+                <path d="M3.964 10.707A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
+              </svg>
+              {loading ? 'Signing in...' : 'Continue with Google'}
+            </button>
           </div>
-        </div>
 
-        {/* Demo hint */}
-        <div className="mt-4 p-3 bg-card border border-border/50 rounded-xl text-xs text-muted-foreground text-center">
-          <p className="font-medium text-foreground mb-1">Demo Accounts</p>
-          <p>Customer: any email + any password</p>
-          <p>Admin: admin@jerseystore.com</p>
+          <p className="mt-6 text-center text-xs text-muted-foreground leading-relaxed">
+            By signing in you agree to our terms of service.
+            <br />
+            New users are registered automatically.
+          </p>
         </div>
       </div>
     </div>

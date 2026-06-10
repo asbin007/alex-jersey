@@ -1,160 +1,129 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { Order as IOrder, OrderStatus, PaymentMethod, OrderItem, CustomerInfo, StatusHistoryEntry } from '../types';
+import { Model, DataTypes } from 'sequelize';
+import { sequelize } from '../config/db';
 
-export interface OrderDocument extends Omit<IOrder, '_id'>, Document {}
+export class Order extends Model {
+  public id!: string;
+  public orderNumber!: string;
+  public userId!: string;
+  public subtotal!: number;
+  public deliveryCharge!: number;
+  public total!: number;
+  public status!: string;
+  public paymentStatus!: 'unpaid' | 'paid';
+  public paymentMethod!: string;
+  public customerName!: string;
+  public customerPhone!: string;
+  public deliveryAddress!: string;
+  public customerCity!: string;
+  public customerNote!: string | null;
+  public whatsappConfirmed!: boolean;
+  public deliveryBoyId!: string | null;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 
-const orderItemSchema = new Schema<OrderItem>(
+  public toJSON(): object {
+    const values = { ...this.get() } as any;
+    values._id = values.id;
+    
+    if (values.user) {
+      if (typeof values.user.toJSON === 'function') {
+        values.user = values.user.toJSON();
+      }
+    } else {
+      values.user = values.userId;
+    }
+
+    values.customer = {
+      name: values.customerName,
+      phone: values.customerPhone,
+      deliveryAddress: values.deliveryAddress,
+      city: values.customerCity,
+      note: values.customerNote || undefined,
+    };
+
+    // paymentStatus and deliveryBoyId are included as-is
+
+    return values;
+  }
+}
+
+Order.init(
   {
-    product: {
-      type: Schema.Types.ObjectId,
-      ref: 'Product',
-      required: true,
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    productName: {
-      type: String,
-      required: true,
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-    size: {
-      type: String,
-      required: true,
-    },
-    price: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    customName: {
-      type: String,
-    },
-    customNumber: {
-      type: String,
-    },
-  },
-  { _id: false }
-);
-
-const customerInfoSchema = new Schema<CustomerInfo>(
-  {
-    name: {
-      type: String,
-      required: [true, 'Customer name is required'],
-      trim: true,
-    },
-    phone: {
-      type: String,
-      required: [true, 'Phone number is required'],
-      validate: {
-        validator: function (v: string) {
-          return /^(97|98)\d{8}$/.test(v);
-        },
-        message: 'Phone must be a valid Nepal number (10 digits starting with 97 or 98)',
-      },
-    },
-    deliveryAddress: {
-      type: String,
-      required: [true, 'Delivery address is required'],
-      trim: true,
-    },
-    city: {
-      type: String,
-      required: [true, 'City is required'],
-      trim: true,
-    },
-    note: {
-      type: String,
-      trim: true,
-    },
-  },
-  { _id: false }
-);
-
-const statusHistorySchema = new Schema<StatusHistoryEntry>(
-  {
-    status: {
-      type: String,
-      enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'] as OrderStatus[],
-      required: true,
-    },
-    timestamp: {
-      type: Date,
-      required: true,
-      default: Date.now,
-    },
-    note: {
-      type: String,
-    },
-  },
-  { _id: false }
-);
-
-const orderSchema = new Schema<OrderDocument>(
-  {
     orderNumber: {
-      type: String,
-      required: true,
+      type: DataTypes.STRING,
+      allowNull: false,
       unique: true,
-      index: true,
     },
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    items: {
-      type: [orderItemSchema],
-      validate: {
-        validator: (v: OrderItem[]) => v.length >= 1,
-        message: 'At least one item is required',
-      },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
     subtotal: {
-      type: Number,
-      required: true,
-      min: 0,
+      type: DataTypes.DOUBLE,
+      allowNull: false,
     },
     deliveryCharge: {
-      type: Number,
-      required: true,
-      min: 0,
+      type: DataTypes.DOUBLE,
+      allowNull: false,
     },
     total: {
-      type: Number,
-      required: true,
-      min: 0,
+      type: DataTypes.DOUBLE,
+      allowNull: false,
     },
     status: {
-      type: String,
-      enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'] as OrderStatus[],
-      default: 'pending',
+      type: DataTypes.STRING,
+      defaultValue: 'pending',
+      allowNull: false,
     },
     paymentMethod: {
-      type: String,
-      enum: ['cod'] as PaymentMethod[],
-      default: 'cod',
+      type: DataTypes.STRING,
+      defaultValue: 'cod',
+      allowNull: false,
     },
-    customer: {
-      type: customerInfoSchema,
-      required: true,
+    customerName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    customerPhone: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    deliveryAddress: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    customerCity: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    customerNote: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
     whatsappConfirmed: {
-      type: Boolean,
-      default: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
     },
-    statusHistory: {
-      type: [statusHistorySchema],
-      default: [],
+    paymentStatus: {
+      type: DataTypes.STRING,
+      defaultValue: 'unpaid',
+      allowNull: false,
+    },
+    deliveryBoyId: {
+      type: DataTypes.UUID,
+      allowNull: true,
     },
   },
   {
+    sequelize,
+    modelName: 'Order',
+    tableName: 'Orders',
     timestamps: true,
   }
 );
-
-const Order = mongoose.model<OrderDocument>('Order', orderSchema);
-
-export default Order;

@@ -1,61 +1,100 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { User as IUser, UserRole } from '../types';
+import { Model, DataTypes } from 'sequelize';
+import { sequelize } from '../config/db';
 
-export interface UserDocument extends Omit<IUser, '_id'>, Document {}
+export class User extends Model {
+  public id!: string;
+  public name!: string;
+  public email!: string;
+  public phone!: string | null;
+  public passwordHash!: string | null;
+  public googleId!: string | null;
+  public role!: 'customer' | 'admin' | 'delivery_boy';
+  public street!: string | null;
+  public city!: string | null;
+  public district!: string | null;
+  public avatar!: string | null;
+  public isActive!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 
-const userSchema = new Schema<UserDocument>(
+  public toJSON(): object {
+    const values = { ...this.get() } as any;
+    values._id = values.id;
+    delete values.passwordHash;
+    if (values.city) {
+      values.address = {
+        street: values.street || '',
+        city: values.city,
+        district: values.district || values.city,
+      };
+    }
+    return values;
+  }
+}
+
+User.init(
   {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
     name: {
-      type: String,
-      required: [true, 'Name is required'],
-      minlength: [2, 'Name must be at least 2 characters'],
-      trim: true,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     email: {
-      type: String,
-      required: [true, 'Email is required'],
+      type: DataTypes.STRING,
+      allowNull: false,
       unique: true,
-      lowercase: true,
-      trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
-    },
-    phone: {
-      type: String,
-      required: [true, 'Phone number is required'],
       validate: {
-        validator: function (v: string) {
-          return /^(97|98)\d{8}$/.test(v);
-        },
-        message: 'Phone must be a valid Nepal number (10 digits starting with 97 or 98)',
+        isEmail: true,
       },
     },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: true,  // nullable — Google OAuth users may not have a phone
+    },
     passwordHash: {
-      type: String,
-      required: [true, 'Password is required'],
+      type: DataTypes.STRING,
+      allowNull: true,  // nullable — Google OAuth users have no password
+    },
+    googleId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
     },
     role: {
-      type: String,
-      enum: ['customer', 'admin'] as UserRole[],
-      default: 'customer',
+      type: DataTypes.STRING,
+      defaultValue: 'customer',
+      allowNull: false,
     },
-    address: {
-      street: { type: String },
-      city: { type: String },
-      district: { type: String },
+    street: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    city: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    district: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     avatar: {
-      type: String,
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     isActive: {
-      type: Boolean,
-      default: true,
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false,
     },
   },
   {
+    sequelize,
+    modelName: 'User',
+    tableName: 'Users',
     timestamps: true,
   }
 );
-
-const User = mongoose.model<UserDocument>('User', userSchema);
-
-export default User;

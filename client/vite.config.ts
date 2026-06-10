@@ -11,4 +11,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    headers: {
+      // Remove COOP entirely — lets Google OAuth popup work normally
+      'Cross-Origin-Opener-Policy': 'unsafe-none',
+    },
+  },
 })

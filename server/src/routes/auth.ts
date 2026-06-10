@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { register, login } from '../controllers/authController';
+import { register, login, googleAuth, deliveryAuthLogin } from '../controllers/authController';
 
 const router = Router();
 
@@ -50,5 +50,23 @@ router.post('/register', registerValidation, register);
 
 // POST /api/auth/login
 router.post('/login', loginValidation, login);
+
+// POST /api/auth/google
+// Accepts a Google ID token from the client, verifies it, and returns a JWT
+router.post(
+  '/google',
+  body('credential').notEmpty().withMessage('Google credential is required'),
+  googleAuth
+);
+
+// POST /api/auth/delivery-login — email+password for delivery boys
+router.post(
+  '/delivery-login',
+  [
+    body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+    body('password').notEmpty().withMessage('Password is required'),
+  ],
+  deliveryAuthLogin
+);
 
 export default router;

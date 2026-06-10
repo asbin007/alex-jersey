@@ -1,8 +1,7 @@
-import { Types } from 'mongoose';
 
 // ============ Enums & Literal Types ============
 
-export type UserRole = 'customer' | 'admin';
+export type UserRole = 'customer' | 'admin' | 'delivery_boy';
 
 export type ProductCategory = 'worldcup' | 'retro' | 'club' | 'streetwear';
 
@@ -10,7 +9,7 @@ export type JerseyType = 'home' | 'away' | 'third' | 'retro' | 'custom';
 
 export type Size = 'S' | 'M' | 'L' | 'XL' | 'XXL';
 
-export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'ontheway' | 'delivered' | 'cancelled';
 
 export type PaymentMethod = 'cod';
 
@@ -28,7 +27,7 @@ export interface SizeStock {
 }
 
 export interface OrderItem {
-  product: Types.ObjectId;
+  product: string;
   productName: string;
   quantity: number;
   size: string;
@@ -54,7 +53,7 @@ export interface StatusHistoryEntry {
 // ============ Main Model Interfaces ============
 
 export interface User {
-  _id: Types.ObjectId;
+  id: string;
   name: string;
   email: string;
   phone: string;
@@ -68,7 +67,7 @@ export interface User {
 }
 
 export interface Product {
-  _id: Types.ObjectId;
+  id: string;
   name: string;
   slug: string;
   description: string;
@@ -92,9 +91,8 @@ export interface Product {
 }
 
 export interface Order {
-  _id: Types.ObjectId;
-  orderNumber: string;
-  user: Types.ObjectId;
+  id: string;
+  user: string;
   items: OrderItem[];
   subtotal: number;
   deliveryCharge: number;
@@ -109,9 +107,9 @@ export interface Order {
 }
 
 export interface Review {
-  _id: Types.ObjectId;
-  user: Types.ObjectId;
-  product: Types.ObjectId;
+  id: string;
+  user: string;
+  product: string;
   rating: number;
   comment: string;
   images?: string[];
@@ -121,12 +119,12 @@ export interface Review {
 }
 
 export interface Category {
-  _id: Types.ObjectId;
+  id: string;
   name: string;
   slug: string;
   description?: string;
   image?: string;
-  parentCategory?: Types.ObjectId;
+  parentCategory?: string;
   isActive: boolean;
   sortOrder: number;
   createdAt: Date;

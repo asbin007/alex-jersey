@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, X, SlidersHorizontal } from 'lucide-react'
-import { mockProducts } from '@/data/mockData'
+import { Search, X, SlidersHorizontal, Loader2 } from 'lucide-react'
+import { fetchProducts } from '@/services/productService'
 import ProductCard from '@/components/products/ProductCard'
+import type { Product } from '@/types'
 import type { JerseyType, Size } from '@/types'
 
 type Sort = 'newest' | 'price' | 'popular'
@@ -12,7 +13,12 @@ const sizes: Size[] = ['S', 'M', 'L', 'XL', 'XXL']
 
 export default function Products() {
   const [sp] = useSearchParams()
-  const [q, setQ] = useState('')
+
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [total, setTotal] = useState(0)
+
+  const [q, setQ] = useState(sp.get('search') || '')
   const [team, setTeam] = useState(sp.get('team') || '')
   const [size, setSize] = useState<Size | ''>('')
   const [type, setType] = useState<JerseyType | ''>('')
@@ -20,38 +26,49 @@ export default function Products() {
   const [sort, setSort] = useState<Sort>('newest')
   const [showFilters, setShowFilters] = useState(false)
 
-  const results = useMemo(() => {
-    let r = mockProducts.filter(p => p.isActive)
-    if (q) { const lq = q.toLowerCase(); r = r.filter(p => p.name.toLowerCase().includes(lq) || p.team.toLowerCase().includes(lq) || p.tags.some(t => t.toLowerCase().includes(lq))) }
-    if (team) r = r.filter(p => p.team.toLowerCase() === team.toLowerCase())
-    if (type) r = r.filter(p => p.jerseyType === type)
-    if (size) r = r.filter(p => p.sizes.some(s => s.size === size && s.stock > 0))
-    r = r.filter(p => p.price <= maxP)
-    if (sort === 'price') return [...r].sort((a, b) => a.price - b.price)
-    if (sort === 'popular') return [...r].sort((a, b) => b.reviewCount - a.reviewCount)
-    return [...r].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [q, team, type, size, maxP, sort])
+  const load = useCallback(() => {
+    setLoading(true)
+    fetchProducts({
+      search: q || undefined,
+      team: team || undefined,
+      size: (size as Size) || undefined,
+      jerseyType: (type as JerseyType) || undefined,
+      priceMax: maxP < 5000 ? maxP : undefined,
+      sortBy: sort,
+      page: 1,
+      limit: 50,
+    })
+      .then(result => {
+        setProducts(result.data)
+        setTotal(result.total)
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [q, team, size, type, maxP, sort])
+
+  // Debounce search
+  useEffect(() => {
+    const id = setTimeout(load, q ? 400 : 0)
+    return () => clearTimeout(id)
+  }, [load, q])
 
   const hasFilter = !!(q || team || type || size || maxP < 5000)
   const clear = () => { setQ(''); setTeam(''); setSize(''); setType(''); setMaxP(5000) }
 
   return (
     <div className="min-h-screen bg-black text-white pt-16">
-
-      {/* Header */}
       <div className="border-b border-[#111] bg-[#050505] py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-[11px] font-black text-[#FFD700] uppercase tracking-[0.25em] mb-2">FIFA World Cup 2026</p>
           <div className="flex items-end justify-between">
             <h1 className="text-4xl sm:text-5xl font-black text-white">All Jerseys</h1>
-            <p className="text-[#444] font-bold">{results.length} found</p>
+            <p className="text-[#444] font-bold">{loading ? '...' : `${total} found`}</p>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* Search + sort bar */}
+        {/* Search + sort */}
         <div className="flex gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
@@ -137,7 +154,11 @@ export default function Products() {
 
           {/* Grid */}
           <div className="flex-1 min-w-0">
-            {results.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-24">
+                <Loader2 className="w-10 h-10 animate-spin text-[#FFD700]" />
+              </div>
+            ) : products.length === 0 ? (
               <div className="text-center py-24">
                 <div className="text-5xl mb-4">⚽</div>
                 <p className="text-2xl font-black text-white mb-2">No jerseys found</p>
@@ -146,7 +167,7 @@ export default function Products() {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {results.map(p => <ProductCard key={p._id} product={p} />)}
+                {products.map(p => <ProductCard key={p._id} product={p} />)}
               </div>
             )}
           </div>

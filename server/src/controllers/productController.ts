@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import * as productService from '../services/productService';
 import { ProductFilters } from '../types/dto';
-import Product from '../models/Product';
 
 /**
  * GET /api/products
@@ -17,6 +16,8 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
       priceMin: req.query.priceMin ? Number(req.query.priceMin) : undefined,
       priceMax: req.query.priceMax ? Number(req.query.priceMax) : undefined,
       jerseyType: req.query.jerseyType as ProductFilters['jerseyType'],
+      isFeatured: req.query.isFeatured === 'true' ? true : undefined,
+      isLimitedDrop: req.query.isLimitedDrop === 'true' ? true : undefined,
       sortBy: req.query.sortBy as ProductFilters['sortBy'],
       page: req.query.page ? Number(req.query.page) : undefined,
       limit: req.query.limit ? Number(req.query.limit) : undefined,
@@ -126,6 +127,19 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
 }
 
 /**
+ * GET /api/admin/products
+ * Returns all products including inactive (admin only).
+ */
+export async function getAdminProducts(req: Request, res: Response): Promise<void> {
+  try {
+    const products = await productService.getAdminProducts();
+    res.json(products);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+}
+
+/**
  * DELETE /api/admin/products/:id
  * Soft deletes a product by setting isActive to false (admin only).
  */
@@ -159,7 +173,7 @@ export async function validateCustomization(req: Request, res: Response): Promis
     const { id } = req.params;
     const { customName, customNumber } = req.body;
 
-    const product = await Product.findById(id);
+    const product = await productService.getProductById(id);
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;

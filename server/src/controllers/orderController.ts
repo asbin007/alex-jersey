@@ -92,13 +92,59 @@ export async function getMyOrders(req: Request, res: Response): Promise<void> {
  */
 export async function getAllOrders(req: Request, res: Response): Promise<void> {
   try {
-    const orders = await orderService.getAllOrders();
-    res.json(orders);
+    const filters: OrderFilters = {
+      status: req.query.status as string | undefined,
+      page: req.query.page ? Number(req.query.page) : 1,
+      limit: req.query.limit ? Number(req.query.limit) : 200,
+    };
+    const result = await orderService.getAllOrders(filters);
+    res.json(result.data);
   } catch (error: any) {
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 }
 
+/**
+ * PATCH /api/admin/orders/:id/payment
+ * Marks an order as paid or unpaid (admin only).
+ */
+export async function updatePaymentStatus(req: Request, res: Response): Promise<void> {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array() });
+    return;
+  }
+  try {
+    const { id } = req.params;
+    const { paymentStatus } = req.body as { paymentStatus: 'paid' | 'unpaid' };
+    const order = await orderService.updatePaymentStatus(id, paymentStatus);
+    if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+    res.json(order);
+  } catch {
+    res.status(500).json({ error: 'Failed to update payment status' });
+  }
+}
+
+/**
+ * PATCH /api/admin/orders/:id/assign
+ * Assigns or unassigns a delivery boy to an order (admin only).
+ */
+export async function assignDeliveryBoy(req: Request, res: Response): Promise<void> {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array() });
+    return;
+  }
+  try {
+    const { id } = req.params;
+    const { deliveryBoyId } = req.body as { deliveryBoyId: string | null };
+    const order = await orderService.assignDeliveryBoy(id, deliveryBoyId ?? null);
+    if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+    res.json(order);
+  } catch {
+    res.status(500).json({ error: 'Failed to assign delivery boy' });
+  }
+}
 /**
  * PATCH /api/admin/orders/:id/status
  * Updates the status of an order (admin only).

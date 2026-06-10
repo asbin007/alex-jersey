@@ -1,14 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle, MessageCircle } from 'lucide-react'
+import { CheckCircle, MessageCircle, Loader2 } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
-import { allCities, getDeliveryCharge } from '@/data/mockData'
+import { allCities, getDeliveryCharge } from '@/lib/delivery'
+import { createOrder } from '@/services/orderService'
 
 const WA = '9779747235169'
 
-function orderNum() {
-  return `AJ-${new Date().toISOString().slice(0,10).replace(/-/g,'')}${Math.random().toString(36).slice(2,6).toUpperCase()}`
-}
 
 function waMsg(on: string, name: string, phone: string, addr: string, city: string, note: string,
   items: {n: string, s: string, q: number, p: number, cn?: string, cno?: string}[],
@@ -40,6 +38,8 @@ export default function Checkout() {
   const [errs, setErrs] = useState<Record<string, string>>({})
   const [placed, setPlaced] = useState(false)
   const [on, setOn] = useState('')
+  const [whatsappUrl, setWhatsappUrl] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const del = getDeliveryCharge(form.city)
   const total = subtotal + del
@@ -52,19 +52,50 @@ export default function Checkout() {
     return e
   }
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     const v = validate()
     if (Object.keys(v).length) { setErrs(v); return }
-    setOn(orderNum()); setPlaced(true)
+
+    setLoading(true)
+    try {
+      const payload = {
+        items: items.map(item => ({
+          productId: item.product._id,
+          size: item.size,
+          quantity: item.quantity,
+          customName: item.customName || undefined,
+          customNumber: item.customNumber || undefined,
+        })),
+        customerName: form.name,
+        phone: form.phone,
+        deliveryAddress: form.address,
+        city: form.city,
+        note: form.note || undefined,
+      }
+      const res = await createOrder(payload)
+      setOn(res.order.orderNumber)
+      setWhatsappUrl(res.whatsappUrl)
+      setPlaced(true)
+    } catch (err: any) {
+      console.error(err)
+      const errMsg = err.response?.data?.error || 'Failed to place order. Please try again.'
+      setErrs({ submit: errMsg })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const confirmWA = () => {
-    const msg = waMsg(on, form.name, form.phone, form.address, form.city, form.note,
-      items.map(i => ({ n: i.product.name, s: i.size, q: i.quantity, p: i.product.price * i.quantity, cn: i.customName, cno: i.customNumber })),
-      subtotal, del, total)
     clearCart()
-    window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank')
+    if (whatsappUrl) {
+      window.open(whatsappUrl, '_blank')
+    } else {
+      const msg = waMsg(on, form.name, form.phone, form.address, form.city, form.note,
+        items.map(i => ({ n: i.product.name, s: i.size, q: i.quantity, p: i.product.price * i.quantity, cn: i.customName, cno: i.customNumber })),
+        subtotal, del, total)
+      window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank')
+    }
     navigate('/orders')
   }
 
@@ -164,10 +195,11 @@ export default function Checkout() {
               </div>
             </div>
 
-            <button type="submit"
-              className="w-full btn-gold py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2">
-              Place Order → Confirm on WhatsApp
+            <button type="submit" disabled={loading}
+              className="w-full btn-gold py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 disabled:opacity-50">
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Place Order → Confirm on WhatsApp'}
             </button>
+            {errs.submit && <p className="text-xs text-red-400 font-bold text-center mt-2">{errs.submit}</p>}
           </form>
 
           {/* Summary */}

@@ -1,10 +1,14 @@
 import { validateCustomization, ValidationError } from './orderService';
-import Product from '../models/Product';
+import { Product } from '../models/associations';
 
-// Mock the Product model
-jest.mock('../models/Product');
+// Mock associations
+jest.mock('../models/associations', () => ({
+  Product: {
+    findByPk: jest.fn(),
+  },
+}));
 
-const mockedProduct = Product as jest.Mocked<typeof Product>;
+const mockedProduct = Product as jest.Mocked<any>;
 
 describe('orderService - Custom Jersey Validation', () => {
   beforeEach(() => {
@@ -32,8 +36,8 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      mockedProduct.findById = jest.fn().mockResolvedValue({
-        _id: 'product1',
+      mockedProduct.findByPk.mockResolvedValue({
+        id: 'product1',
         name: 'Argentina Home Jersey',
         allowCustomization: true,
       });
@@ -51,8 +55,8 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      mockedProduct.findById = jest.fn().mockResolvedValue({
-        _id: 'product1',
+      mockedProduct.findByPk.mockResolvedValue({
+        id: 'product1',
         name: 'Argentina Home Jersey',
         allowCustomization: true,
       });
@@ -71,8 +75,8 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      mockedProduct.findById = jest.fn().mockResolvedValue({
-        _id: 'product1',
+      mockedProduct.findByPk.mockResolvedValue({
+        id: 'product1',
         name: 'Argentina Home Jersey',
         allowCustomization: true,
       });
@@ -90,8 +94,8 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      mockedProduct.findById = jest.fn().mockResolvedValue({
-        _id: 'product1',
+      mockedProduct.findByPk.mockResolvedValue({
+        id: 'product1',
         name: 'Nepal Retro Jersey',
         allowCustomization: false,
       });
@@ -112,8 +116,8 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      mockedProduct.findById = jest.fn().mockResolvedValue({
-        _id: 'product1',
+      mockedProduct.findByPk.mockResolvedValue({
+        id: 'product1',
         name: 'Nepal Retro Jersey',
         allowCustomization: false,
       });
@@ -135,8 +139,8 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      mockedProduct.findById = jest.fn().mockResolvedValue({
-        _id: 'product1',
+      mockedProduct.findByPk.mockResolvedValue({
+        id: 'product1',
         name: 'Nepal Retro Jersey',
         allowCustomization: false,
       });
@@ -157,7 +161,7 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      mockedProduct.findById = jest.fn().mockResolvedValue(null);
+      mockedProduct.findByPk.mockResolvedValue(null);
 
       await expect(validateCustomization(items)).rejects.toThrow(ValidationError);
       await expect(validateCustomization(items)).rejects.toThrow(
@@ -181,14 +185,14 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      mockedProduct.findById = jest.fn()
+      mockedProduct.findByPk
         .mockResolvedValueOnce({
-          _id: 'product1',
+          id: 'product1',
           name: 'Argentina Home Jersey',
           allowCustomization: true,
         })
         .mockResolvedValueOnce({
-          _id: 'product2',
+          id: 'product2',
           name: 'Nepal Retro Jersey',
           allowCustomization: false,
         });
@@ -208,9 +212,9 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      // Product.findById should NOT be called since no customization is requested
+      // Product.findByPk should NOT be called since no customization is requested
       await expect(validateCustomization(items)).resolves.toBeUndefined();
-      expect(mockedProduct.findById).not.toHaveBeenCalled();
+      expect(mockedProduct.findByPk).not.toHaveBeenCalled();
     });
 
     // ---- Field-level validation: customName ----
@@ -229,8 +233,7 @@ describe('orderService - Custom Jersey Validation', () => {
       await expect(validateCustomization(items)).rejects.toThrow(
         'Custom name must not exceed 20 characters'
       );
-      // Product should NOT be queried before field validation fails
-      expect(mockedProduct.findById).not.toHaveBeenCalled();
+      expect(mockedProduct.findByPk).not.toHaveBeenCalled();
     });
 
     it('should reject customName with digits', async () => {
@@ -275,8 +278,8 @@ describe('orderService - Custom Jersey Validation', () => {
         },
       ];
 
-      mockedProduct.findById = jest.fn().mockResolvedValue({
-        _id: 'product1',
+      mockedProduct.findByPk.mockResolvedValue({
+        id: 'product1',
         name: 'Portugal Home Jersey',
         allowCustomization: true,
       });
@@ -319,8 +322,8 @@ describe('orderService - Custom Jersey Validation', () => {
     });
 
     it('should accept customNumber at boundary values 0 and 99', async () => {
-      mockedProduct.findById = jest.fn().mockResolvedValue({
-        _id: 'product1',
+      mockedProduct.findByPk.mockResolvedValue({
+        id: 'product1',
         name: 'Nepal Home Jersey',
         allowCustomization: true,
       });

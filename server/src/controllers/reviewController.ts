@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import * as reviewService from '../services/reviewService';
-import Review from '../models/Review';
 
 /**
  * POST /api/reviews
@@ -64,14 +63,14 @@ export async function deleteReview(req: Request, res: Response): Promise<void> {
   }
 
   try {
-    const review = await Review.findById(req.params.id);
+    const review = await reviewService.getReviewById(req.params.id);
     if (!review) {
       res.status(404).json({ error: 'Review not found' });
       return;
     }
 
     const requestingUser = req.user!;
-    const isOwner = review.user.toString() === requestingUser.userId;
+    const isOwner = review.userId === requestingUser.userId;
     const isAdmin = requestingUser.role === 'admin';
 
     if (!isOwner && !isAdmin) {

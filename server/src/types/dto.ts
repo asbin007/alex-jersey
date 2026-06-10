@@ -21,13 +21,13 @@ export interface AuthResponse {
     name: string;
     email: string;
     phone: string;
-    role: 'customer' | 'admin';
+    role: 'customer' | 'admin' | 'delivery_boy';
   };
 }
 
 export interface DecodedToken {
   userId: string;
-  role: 'customer' | 'admin';
+  role: 'customer' | 'admin' | 'delivery_boy';
   iat: number;
   exp: number;
 }
@@ -60,6 +60,8 @@ export interface ProductFilters {
   priceMin?: number;
   priceMax?: number;
   jerseyType?: JerseyType;
+  isFeatured?: boolean;
+  isLimitedDrop?: boolean;
   sortBy?: 'price' | 'newest' | 'popular';
   page?: number;
   limit?: number;

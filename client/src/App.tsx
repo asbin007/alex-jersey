@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import AdminLayout from '@/components/admin/AdminLayout'
+import DeliveryLayout from '@/components/delivery/DeliveryLayout'
 
 // Pages
 import Home from '@/pages/Home'
@@ -20,6 +22,10 @@ import AdminDashboard from '@/pages/admin/Dashboard'
 import AdminProducts from '@/pages/admin/AdminProducts'
 import AdminOrders from '@/pages/admin/AdminOrders'
 import AdminUsers from '@/pages/admin/AdminUsers'
+import AdminProductForm from '@/pages/admin/AdminProductForm'
+import DeliveryManagement from '@/pages/admin/DeliveryManagement'
+import DeliveryOrders from '@/pages/delivery/DeliveryOrders'
+import DeliveryLogin from '@/pages/delivery/DeliveryLogin'
 
 // Main layout with Navbar + Footer
 function MainLayout() {
@@ -36,6 +42,7 @@ function MainLayout() {
 
 function App() {
   return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
@@ -56,13 +63,23 @@ function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
+              <Route path="products/new" element={<AdminProductForm />} />
+              <Route path="products/:id/edit" element={<AdminProductForm />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="delivery" element={<DeliveryManagement />} />
+            </Route>
+
+            {/* Delivery boy portal */}
+            <Route path="/delivery/login" element={<DeliveryLogin />} />
+            <Route path="/delivery" element={<DeliveryLayout />}>
+              <Route index element={<DeliveryOrders />} />
             </Route>
           </Routes>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>
+    </GoogleOAuthProvider>
   )
 }
 

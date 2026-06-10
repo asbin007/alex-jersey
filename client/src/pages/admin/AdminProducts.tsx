@@ -1,27 +1,50 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Edit, Trash2, Search, Eye, EyeOff } from 'lucide-react'
-import { mockProducts } from '@/data/mockData'
+import { Plus, Edit, Trash2, Search, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { fetchAdminProducts, updateAdminProduct, deleteAdminProduct } from '@/services/adminService'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { Product } from '@/types'
 
 export default function AdminProducts() {
-  const [products, setProducts] = useState<Product[]>(mockProducts)
+  const [products, setProducts] = useState<Product[]>([])
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  const loadProducts = () => {
+    setLoading(true)
+    fetchAdminProducts()
+      .then(setProducts)
+      .catch((err) => console.error("Failed to load products", err))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadProducts()
+  }, [])
 
   const filtered = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.team.toLowerCase().includes(search.toLowerCase())
   )
 
-  const toggleActive = (id: string) => {
-    setProducts(prev => prev.map(p => p._id === id ? { ...p, isActive: !p.isActive } : p))
+  const toggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      await updateAdminProduct(id, { isActive: !currentStatus })
+      setProducts(prev => prev.map(p => p._id === id ? { ...p, isActive: !currentStatus } : p))
+    } catch (err) {
+      console.error("Failed to toggle product status", err)
+    }
   }
 
-  const deleteProduct = (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     if (confirm('Are you sure you want to delete this product?')) {
-      setProducts(prev => prev.filter(p => p._id !== id))
+      try {
+        await deleteAdminProduct(id)
+        setProducts(prev => prev.filter(p => p._id !== id))
+      } catch (err) {
+        console.error("Failed to delete product", err)
+      }
     }
   }
 
@@ -53,6 +76,11 @@ export default function AdminProducts() {
       </div>
 
       {/* Table */}
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : (
       <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -107,7 +135,7 @@ export default function AdminProducts() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <button
-                        onClick={() => toggleActive(product._id)}
+                        onClick={() => toggleActive(product._id, product.isActive)}
                         className="p-1.5 rounded hover:bg-white/5 text-muted-foreground hover:text-foreground transition-colors"
                         title={product.isActive ? 'Hide product' : 'Show product'}
                       >
@@ -120,7 +148,7 @@ export default function AdminProducts() {
                         <Edit className="w-4 h-4" />
                       </Link>
                       <button
-                        onClick={() => deleteProduct(product._id)}
+                        onClick={() => handleDeleteProduct(product._id)}
                         className="p-1.5 rounded hover:bg-white/5 text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -133,6 +161,7 @@ export default function AdminProducts() {
           </table>
         </div>
       </div>
+      )}
     </div>
   )
 }

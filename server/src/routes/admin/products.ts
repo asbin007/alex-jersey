@@ -6,6 +6,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  getAdminProducts,
 } from '../../controllers/productController';
 
 const router = Router();
@@ -147,6 +148,9 @@ const updateProductValidation = [
     .isInt({ min: 0 })
     .withMessage('Stock must be a non-negative integer'),
 ];
+
+// GET /api/admin/products - List all products (including inactive)
+router.get('/', getAdminProducts);
 
 // POST /api/admin/products - Create a new product
 router.post('/', createProductValidation, createProduct);
