@@ -5,16 +5,19 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://alexjersey.rocks',
+  'https://www.alexjersey.rocks',
+  process.env.CLIENT_URL,
+  process.env.ADMIN_URL,
+].filter(Boolean) as string[];
+
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      process.env.CLIENT_URL || 'http://localhost:5173',
-      process.env.ADMIN_URL || 'http://localhost:3001',
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:3001',
-    ];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
