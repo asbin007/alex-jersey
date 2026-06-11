@@ -15,14 +15,18 @@ const allowedOrigins = [
   process.env.ADMIN_URL,
 ].filter(Boolean) as string[];
 
+const allowedPatterns = [
+  /^https:\/\/.*\.vercel\.app$/,
+  /^https:\/\/.*\.onrender\.com$/,
+];
+
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowedPatterns.some((p) => p.test(origin))) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 }));
@@ -67,6 +71,12 @@ app.use('/api/admin/delivery-boys', adminDeliveryRoutes);
 // Review routes
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin/reviews', adminReviewRoutes);
+
+// Global error handler — must be after all routes, keeps CORS headers intact
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+});
 
 import { sequelize } from './config/db';
 import './models/associations';
