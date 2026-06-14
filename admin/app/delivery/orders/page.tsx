@@ -30,7 +30,7 @@ export default function DeliveryOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
-  const user = typeof window !== 'undefined' ? getStoredUser() : null
+  const [user, setUser] = useState<ReturnType<typeof getStoredUser>>(null)
 
   useEffect(() => {
     const stored = getStoredUser()
@@ -38,6 +38,7 @@ export default function DeliveryOrdersPage() {
       router.replace('/delivery/login')
       return
     }
+    setUser(stored)
     load()
   }, [router])
 
@@ -68,9 +69,11 @@ export default function DeliveryOrdersPage() {
   }
 
   // Only show orders assigned to this delivery boy (or all if admin)
-  const myOrders = user?.role === 'admin'
+  const myOrders = !user
+    ? []
+    : user.role === 'admin'
     ? orders
-    : orders.filter(o => o.deliveryBoyId === user?.id)
+    : orders.filter(o => o.deliveryBoyId === user.id)
 
   const active = myOrders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled')
   const done = myOrders.filter(o => o.status === 'delivered')
