@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { fetchDeliveryOrders, updateDeliveryStatus } from '@/lib/services'
 import { formatCurrency } from '@/lib/utils'
-import { getStoredUser, clearAuth } from '@/store/auth'
+import { getDeliveryUser, clearDeliveryAuth } from '@/store/auth'
 import type { Order, OrderStatus } from '@/types'
 import { toast } from 'sonner'
 
@@ -30,10 +30,10 @@ export default function DeliveryOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
-  const [user, setUser] = useState<ReturnType<typeof getStoredUser>>(null)
+  const [user, setUser] = useState<ReturnType<typeof getDeliveryUser>>(null)
 
   useEffect(() => {
-    const stored = getStoredUser()
+    const stored = getDeliveryUser()
     if (!stored || (stored.role !== 'delivery_boy' && stored.role !== 'admin')) {
       router.replace('/delivery/login')
       return
@@ -69,7 +69,7 @@ export default function DeliveryOrdersPage() {
   }
 
   const handleLogout = () => {
-    clearAuth()
+    clearDeliveryAuth()
     router.replace('/delivery/login')
   }
 
