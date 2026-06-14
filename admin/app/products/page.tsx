@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { Search, Eye, EyeOff, Trash2, Loader2, Plus } from 'lucide-react'
+import { Search, Eye, EyeOff, Trash2, Loader2, Plus, Pencil } from 'lucide-react'
 import AdminLayout from '../adminLayout/adminLayout'
 import AddProductModal from '@/components/AddProductModal'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,6 +19,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editProduct, setEditProduct] = useState<Product | null>(null)
 
   const load = () => {
     setLoading(true)
@@ -61,10 +62,16 @@ export default function ProductsPage() {
 
   return (
     <AdminLayout>
+      {/* Add modal */}
       {showAddModal && (
+        <AddProductModal onClose={() => setShowAddModal(false)} onSuccess={load} />
+      )}
+      {/* Edit modal */}
+      {editProduct && (
         <AddProductModal
-          onClose={() => setShowAddModal(false)}
-          onSuccess={load}
+          product={editProduct}
+          onClose={() => setEditProduct(null)}
+          onSuccess={() => { load(); setEditProduct(null) }}
         />
       )}
 
@@ -74,8 +81,7 @@ export default function ProductsPage() {
           <p className="text-sm text-muted-foreground">{products.length} jerseys in catalog</p>
         </div>
         <Button onClick={() => setShowAddModal(true)}>
-          <Plus className="h-4 w-4" />
-          Add Product
+          <Plus className="h-4 w-4" /> Add Product
         </Button>
       </div>
 
@@ -118,7 +124,11 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">{product.team}</td>
                     <td className="px-4 py-3 font-semibold">{formatCurrency(product.price)}</td>
-                    <td className="px-4 py-3 hidden sm:table-cell">{totalStock(product)}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">
+                      <span className={totalStock(product) <= 5 ? 'text-red-400 font-semibold' : ''}>
+                        {totalStock(product)}
+                      </span>
+                    </td>
                     <td className="px-4 py-3">
                       <Badge variant={product.isActive ? 'success' : 'outline'}>
                         {product.isActive ? 'Active' : 'Hidden'}
@@ -126,10 +136,13 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleToggle(product)}>
+                        <Button variant="ghost" size="icon" title="Edit product" onClick={() => setEditProduct(product)}>
+                          <Pencil className="h-4 w-4 text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="icon" title={product.isActive ? 'Hide' : 'Show'} onClick={() => handleToggle(product)}>
                           {product.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(product._id)}>
+                        <Button variant="ghost" size="icon" title="Delete" onClick={() => handleDelete(product._id)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>

@@ -105,6 +105,11 @@ export async function deleteReview(reviewId: string): Promise<void> {
   await api.delete(`/admin/reviews/${reviewId}`)
 }
 
+export async function updateProduct(id: string, payload: Partial<CreateProductDTO> & { isActive?: boolean }): Promise<Product> {
+  const { data } = await api.put(`/admin/products/${id}`, payload)
+  return data as Product
+}
+
 export async function toggleProductActive(id: string, isActive: boolean): Promise<Product> {
   const { data } = await api.put(`/admin/products/${id}`, { isActive })
   return data
