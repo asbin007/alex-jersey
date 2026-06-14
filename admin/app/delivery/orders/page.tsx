@@ -39,7 +39,12 @@ export default function DeliveryOrdersPage() {
       return
     }
     setUser(stored)
-    load()
+    // Load after setting user so filter has the user available
+    setLoading(true)
+    fetchDeliveryOrders()
+      .then(setOrders)
+      .catch(() => toast.error('Failed to load orders'))
+      .finally(() => setLoading(false))
   }, [router])
 
   const load = () => {
