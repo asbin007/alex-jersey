@@ -130,14 +130,18 @@ export async function createOrder(
         customNumber: item.customNumber,
       });
 
-      // Step 4: Decrement stock for each ordered item in SizeStock
-      const sizeStock = await SizeStock.findOne({
-        where: { productId: product.id, size: item.size },
-        transaction: t,
-      });
-      if (sizeStock) {
-        sizeStock.stock -= item.quantity;
-        await sizeStock.save({ transaction: t });
+      // Step 4: Atomically decrement stock to prevent race conditions
+      const [updatedCount] = await SizeStock.update(
+        { stock: sequelize.literal(`stock - ${item.quantity}`) as any },
+        {
+          where: { productId: product.id, size: item.size, stock: { [Op.gte]: item.quantity } },
+          transaction: t,
+        }
+      );
+      if (updatedCount === 0) {
+        throw new ValidationError(
+          `Stock was just taken for ${product.name} size ${item.size}. Please try again.`
+        );
       }
     }
 
