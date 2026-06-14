@@ -27,8 +27,7 @@ export default function DeliveryLoginPage() {
       }
       setAuth(result.token, result.user as Parameters<typeof setAuth>[1])
       toast.success('Welcome back to the Delivery Portal!')
-      // Redirect to delivery dashboard (update this route if a specific delivery dashboard exists)
-      router.push('/dashboard') 
+      router.push('/delivery/orders')
     } catch {
       toast.error('Invalid email or password')
     } finally {

@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, ChevronDown, Loader2 } from 'lucide-react'
+import { Search, ChevronDown, Loader2, Truck } from 'lucide-react'
 import AdminLayout from '../adminLayout/adminLayout'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { fetchOrders, updateOrderStatus } from '@/lib/services'
+import { fetchOrders, updateOrderStatus, fetchDeliveryBoys, assignDeliveryBoy, type DeliveryBoy } from '@/lib/services'
 import { formatCurrency } from '@/lib/utils'
 import type { Order, OrderStatus } from '@/types'
 import { toast } from 'sonner'
@@ -24,6 +24,7 @@ const statusVariant: Record<OrderStatus, 'default' | 'success' | 'warning' | 'de
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
+  const [deliveryBoys, setDeliveryBoys] = useState<DeliveryBoy[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('')
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -32,8 +33,8 @@ export default function OrdersPage() {
 
   const load = () => {
     setLoading(true)
-    fetchOrders()
-      .then(setOrders)
+    Promise.all([fetchOrders(), fetchDeliveryBoys()])
+      .then(([o, d]) => { setOrders(o); setDeliveryBoys(d) })
       .catch(() => toast.error('Failed to load orders'))
       .finally(() => setLoading(false))
   }
@@ -41,7 +42,7 @@ export default function OrdersPage() {
   const silentRefresh = () => {
     fetchOrders()
       .then((data) => { setOrders(data); setLastRefresh(new Date()) })
-      .catch(() => {}) // silent background refresh
+      .catch(() => {})
   }
 
   useEffect(() => {
@@ -66,6 +67,16 @@ export default function OrdersPage() {
       load()
     } catch {
       toast.error('Update failed')
+    }
+  }
+
+  const handleAssign = async (orderId: string, deliveryBoyId: string) => {
+    try {
+      await assignDeliveryBoy(orderId, deliveryBoyId || null)
+      toast.success(deliveryBoyId ? 'Delivery boy assigned' : 'Assignment removed')
+      load()
+    } catch {
+      toast.error('Assignment failed')
     }
   }
 
@@ -112,6 +123,12 @@ export default function OrdersPage() {
                   <div className="flex items-center gap-2">
                     <p className="font-bold">{order.orderNumber}</p>
                     <Badge variant={statusVariant[order.status]}>{order.status}</Badge>
+                    {order.deliveryBoyId && (
+                      <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        <Truck className="h-3 w-3" />
+                        {deliveryBoys.find(b => b._id === order.deliveryBoyId)?.name ?? 'Assigned'}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {order.customer.name} · {order.customer.phone} · {new Date(order.createdAt).toLocaleDateString('en-NP')}
@@ -125,8 +142,8 @@ export default function OrdersPage() {
 
               {expanded === order._id && (
                 <div className="border-t border-border px-4 pb-4 pt-3">
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="space-y-2">
+                  <div className="grid gap-6 md:grid-cols-3">
+                    <div className="space-y-2 md:col-span-1">
                       {order.items.map((item, i) => (
                         <div key={i} className="flex justify-between text-sm">
                           <span>{item.productName} ({item.size}) ×{item.quantity}</span>
@@ -143,6 +160,19 @@ export default function OrdersPage() {
                       >
                         {ALL_STATUSES.map((s) => (
                           <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Assign delivery boy</p>
+                      <select
+                        value={order.deliveryBoyId ?? ''}
+                        onChange={(e) => handleAssign(order._id, e.target.value)}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                      >
+                        <option value="">— Unassigned —</option>
+                        {deliveryBoys.map((b) => (
+                          <option key={b._id} value={b._id}>{b.name}</option>
                         ))}
                       </select>
                     </div>

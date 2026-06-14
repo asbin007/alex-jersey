@@ -113,3 +113,18 @@ export async function toggleProductActive(id: string, isActive: boolean): Promis
 export async function deleteProduct(id: string): Promise<void> {
   await api.delete(`/admin/products/${id}`)
 }
+
+export async function assignDeliveryBoy(orderId: string, deliveryBoyId: string | null): Promise<Order> {
+  const { data } = await api.patch(`/admin/orders/${orderId}/assign`, { deliveryBoyId })
+  return data
+}
+
+export async function fetchDeliveryOrders(): Promise<Order[]> {
+  const { data } = await api.get('/delivery/orders')
+  return data
+}
+
+export async function updateDeliveryStatus(orderId: string, status: OrderStatus): Promise<Order> {
+  const { data } = await api.patch(`/delivery/orders/${orderId}/status`, { status })
+  return data
+}

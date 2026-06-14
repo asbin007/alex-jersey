@@ -5,18 +5,17 @@ import { OrderStatus } from '../types';
 
 /**
  * GET /api/delivery/orders
- * Returns ALL orders (not just assigned) for delivery boy.
- * Admin sees all too.
+ * Delivery boy sees only their assigned orders.
+ * Admin sees all.
  */
 export async function getMyDeliveries(req: Request, res: Response): Promise<void> {
   try {
     const userId = req.user!.userId;
     const role = req.user!.role;
 
-    // Both delivery_boy and admin get all orders with delivery info
     const orders = role === 'admin'
       ? await orderService.getAllOrdersForDelivery()
-      : await orderService.getAllOrdersForDelivery(userId);
+      : await orderService.getDeliveryBoyOrders(userId);
 
     res.json(orders);
   } catch {
@@ -26,7 +25,8 @@ export async function getMyDeliveries(req: Request, res: Response): Promise<void
 
 /**
  * PATCH /api/delivery/orders/:id/status
- * Delivery boy can move an order to: ontheway, delivered
+ * Delivery boy can move their assigned order to: ontheway, delivered
+ * Admin can update any order.
  */
 export async function updateDeliveryStatus(req: Request, res: Response): Promise<void> {
   const errors = validationResult(req);
@@ -47,14 +47,24 @@ export async function updateDeliveryStatus(req: Request, res: Response): Promise
       return;
     }
 
-    // Delivery boys can update any order (per spec — they see all)
+    // Delivery boys can only update orders assigned to them
+    if (role === 'delivery_boy' && existing.deliveryBoyId !== userId) {
+      res.status(403).json({ error: 'You are not assigned to this order' });
+      return;
+    }
+
+    // Delivery boys can only set ontheway or delivered
+    if (role === 'delivery_boy' && !['ontheway', 'delivered'].includes(status)) {
+      res.status(403).json({ error: 'Delivery boys can only mark orders as ontheway or delivered' });
+      return;
+    }
+
     const note = status === 'ontheway'
       ? `Picked up by delivery boy`
       : `Delivered by delivery boy`;
 
     const order = await orderService.updateOrderStatus(id, status, note);
 
-    // Generate WhatsApp message for customer
     const customerPhone = existing.customerPhone;
     const whatsappMsg = status === 'ontheway'
       ? `Hi ${existing.customerName}! Your order *${existing.orderNumber}* is ON THE WAY 🚀 Our delivery boy is heading to you now!`

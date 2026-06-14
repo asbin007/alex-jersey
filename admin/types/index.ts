@@ -71,6 +71,7 @@ export interface Order {
   paymentMethod: 'cod'
   customer: CustomerInfo
   whatsappConfirmed: boolean
+  deliveryBoyId: string | null
   statusHistory: { status: OrderStatus; timestamp: string; note?: string }[]
   createdAt: string
   updatedAt: string
