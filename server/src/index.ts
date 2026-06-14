@@ -11,6 +11,7 @@ const allowedOrigins = [
   'http://localhost:3001',
   'https://alexjersey.rocks',
   'https://www.alexjersey.rocks',
+  'https://admin.alexjersey.rocks',
   process.env.CLIENT_URL,
   process.env.ADMIN_URL,
 ].filter(Boolean) as string[];
