@@ -106,6 +106,14 @@ export interface DashboardStats {
   totalUsers: number
   pendingOrders: number
   recentOrders: Order[]
+  todayOrders: number
+  todayRevenue: number
+  yesterdayRevenue: number
+  unassignedOrders: number
+  statusBreakdown: Record<string, number>
+  dailyRevenue: { date: string; revenue: number; orders: number }[]
+  lowStockProducts: { id: string; name: string; sizes: { size: string; stock: number }[] }[]
+  topProducts: { productId: string; productName: string; totalSold: number; totalRevenue: number }[]
 }
 
 export interface AuthUser {

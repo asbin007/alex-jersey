@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { User, Product, Order, OrderItem } from '../models/associations';
+import { User, Product, Order, OrderItem, SizeStock } from '../models/associations';
 
 export interface DashboardStats {
   totalOrders: number;
@@ -8,32 +8,123 @@ export interface DashboardStats {
   totalUsers: number;
   pendingOrders: number;
   recentOrders: any[];
+  todayOrders: number;
+  todayRevenue: number;
+  yesterdayRevenue: number;
+  unassignedOrders: number;
+  statusBreakdown: Record<string, number>;
+  dailyRevenue: { date: string; revenue: number; orders: number }[];
+  lowStockProducts: { id: string; name: string; sizes: { size: string; stock: number }[] }[];
+  topProducts: { productId: string; productName: string; totalSold: number; totalRevenue: number }[];
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [totalOrders, totalProducts, totalUsers, pendingOrders, recentOrders, totalRevenue] =
-    await Promise.all([
-      Order.count(),
-      Product.count({ where: { isActive: true } }),
-      User.count(),
-      Order.count({ where: { status: 'pending' } }),
-      Order.findAll({
-        order: [['createdAt', 'DESC']],
-        limit: 5,
-        include: [
-          {
-            model: OrderItem,
-            as: 'items',
-            include: [{ model: Product, as: 'product', attributes: ['name', 'slug', 'images', 'price'] }],
-          },
-        ],
-      }),
-      Order.sum('total', {
-        where: {
-          status: { [Op.ne]: 'cancelled' },
-        },
-      }),
-    ]);
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+  const sevenDaysAgo = new Date(todayStart.getTime() - 6 * 86400000);
+
+  const [
+    totalOrders,
+    totalProducts,
+    totalUsers,
+    pendingOrders,
+    recentOrders,
+    totalRevenue,
+    todayOrders,
+    todayRevenue,
+    yesterdayRevenue,
+    unassignedOrders,
+    allStatuses,
+    last7DaysOrders,
+    lowStockItems,
+    topItems,
+  ] = await Promise.all([
+    Order.count(),
+    Product.count({ where: { isActive: true } }),
+    User.count(),
+    Order.count({ where: { status: 'pending' } }),
+    Order.findAll({
+      order: [['createdAt', 'DESC']],
+      limit: 5,
+      include: [{ model: OrderItem, as: 'items' }],
+    }),
+    Order.sum('total', { where: { status: { [Op.ne]: 'cancelled' } } }),
+    Order.count({ where: { createdAt: { [Op.gte]: todayStart } } }),
+    Order.sum('total', {
+      where: { createdAt: { [Op.gte]: todayStart }, status: { [Op.ne]: 'cancelled' } },
+    }),
+    Order.sum('total', {
+      where: {
+        createdAt: { [Op.gte]: yesterdayStart, [Op.lt]: todayStart },
+        status: { [Op.ne]: 'cancelled' },
+      },
+    }),
+    Order.count({ where: { deliveryBoyId: null, status: { [Op.notIn]: ['delivered', 'cancelled'] } } }),
+    Order.findAll({
+      attributes: ['status'],
+      where: { status: { [Op.ne]: 'cancelled' } },
+    }),
+    Order.findAll({
+      where: { createdAt: { [Op.gte]: sevenDaysAgo }, status: { [Op.ne]: 'cancelled' } },
+      attributes: ['createdAt', 'total'],
+    }),
+    SizeStock.findAll({
+      where: { stock: { [Op.lte]: 3 } },
+      include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'isActive'], where: { isActive: true } }],
+      order: [['stock', 'ASC']],
+      limit: 6,
+    }),
+    OrderItem.findAll({
+      attributes: ['productId', 'productName', 'quantity', 'price'],
+      include: [{ model: Order, as: 'order', attributes: [], where: { status: { [Op.ne]: 'cancelled' } } }],
+    }),
+  ]);
+
+  // Status breakdown
+  const statusBreakdown: Record<string, number> = {};
+  for (const o of allStatuses as any[]) {
+    const s = o.status as string;
+    statusBreakdown[s] = (statusBreakdown[s] || 0) + 1;
+  }
+
+  // Daily revenue for last 7 days
+  const dailyMap: Record<string, { revenue: number; orders: number }> = {};
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sevenDaysAgo.getTime() + i * 86400000);
+    const key = d.toISOString().slice(0, 10);
+    dailyMap[key] = { revenue: 0, orders: 0 };
+  }
+  for (const o of last7DaysOrders as any[]) {
+    const key = new Date(o.createdAt).toISOString().slice(0, 10);
+    if (dailyMap[key]) {
+      dailyMap[key].revenue += Number(o.total) || 0;
+      dailyMap[key].orders += 1;
+    }
+  }
+  const dailyRevenue = Object.entries(dailyMap).map(([date, v]) => ({ date, ...v }));
+
+  // Low stock products
+  const lowStockMap: Record<string, { id: string; name: string; sizes: { size: string; stock: number }[] }> = {};
+  for (const s of lowStockItems as any[]) {
+    const pid = s.product?.id || s.productId;
+    const name = s.product?.name || 'Unknown';
+    if (!lowStockMap[pid]) lowStockMap[pid] = { id: pid, name, sizes: [] };
+    lowStockMap[pid].sizes.push({ size: s.size, stock: s.stock });
+  }
+  const lowStockProducts = Object.values(lowStockMap);
+
+  // Top selling products
+  const topMap: Record<string, { productId: string; productName: string; totalSold: number; totalRevenue: number }> = {};
+  for (const item of topItems as any[]) {
+    const pid = item.productId;
+    if (!topMap[pid]) topMap[pid] = { productId: pid, productName: item.productName, totalSold: 0, totalRevenue: 0 };
+    topMap[pid].totalSold += Number(item.quantity) || 0;
+    topMap[pid].totalRevenue += Number(item.price) || 0;
+  }
+  const topProducts = Object.values(topMap)
+    .sort((a, b) => b.totalSold - a.totalSold)
+    .slice(0, 5);
 
   return {
     totalOrders,
@@ -42,6 +133,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     totalUsers,
     pendingOrders,
     recentOrders,
+    todayOrders,
+    todayRevenue: todayRevenue || 0,
+    yesterdayRevenue: yesterdayRevenue || 0,
+    unassignedOrders,
+    statusBreakdown,
+    dailyRevenue,
+    lowStockProducts,
+    topProducts,
   };
 }
 
