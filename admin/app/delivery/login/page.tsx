@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { login } from '@/lib/services'
-import { setAuth } from '@/store/auth'
+import { setAuth, clearAuth } from '@/store/auth'
 import { toast } from 'sonner'
 
 export default function DeliveryLoginPage() {
@@ -25,6 +25,7 @@ export default function DeliveryLoginPage() {
         toast.error('Delivery access only')
         return
       }
+      clearAuth() // clear any stale admin session first
       setAuth(result.token, result.user as Parameters<typeof setAuth>[1])
       toast.success('Welcome back to the Delivery Portal!')
       router.push('/delivery/orders')

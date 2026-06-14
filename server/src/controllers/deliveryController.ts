@@ -6,19 +6,21 @@ import { OrderStatus } from '../types';
 /**
  * GET /api/delivery/orders
  * Delivery boy sees only their assigned orders.
- * Admin sees all.
+ * Admin sees all orders.
  */
 export async function getMyDeliveries(req: Request, res: Response): Promise<void> {
   try {
     const userId = req.user!.userId;
     const role = req.user!.role;
 
+    // Strictly enforce: only admin gets all orders, everyone else only gets assigned
     const orders = role === 'admin'
       ? await orderService.getAllOrdersForDelivery()
       : await orderService.getDeliveryBoyOrders(userId);
 
     res.json(orders);
-  } catch {
+  } catch (err) {
+    console.error('getMyDeliveries error:', err);
     res.status(500).json({ error: 'Failed to fetch deliveries' });
   }
 }
