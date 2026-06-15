@@ -25,8 +25,9 @@ export async function seedDatabase() {
 
     console.log('Seeding database with mock data...');
 
-    // 2. Create Default Users
-    const hashedPassword = await bcrypt.hash('password123', SALT_ROUNDS);
+    // 2. Create Default Users — seed password from env or a safe default
+    const seedUserPassword = process.env.SEED_USER_PASSWORD || 'Nepal@2026';
+    const hashedPassword = await bcrypt.hash(seedUserPassword, SALT_ROUNDS);
 
     // Default Customer 1
     const customerUser = await User.create(
@@ -77,17 +78,17 @@ export async function seedDatabase() {
     );
 
     // Default Admin
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@jerseystore.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'password123';
-    const adminUsername = process.env.ADMIN_USERNAME || 'Admin User';
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD ;
+    const adminUsername = process.env.ADMIN_USERNAME ;
     
-    const hashedAdminPassword = await bcrypt.hash(adminPassword, SALT_ROUNDS);
+    const hashedAdminPassword = await bcrypt.hash(adminPassword as string, SALT_ROUNDS);
 
     await User.create(
       {
         name: adminUsername,
         email: adminEmail,
-        phone: '9800000000',
+        phone: process.env.ADMIN_PHONE || '9800000000',
         passwordHash: hashedAdminPassword,
         role: 'admin',
         street: 'Main Street',

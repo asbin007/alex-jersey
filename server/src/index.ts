@@ -110,7 +110,7 @@ async function startServer() {
       await User.create({
         name: adminUsername,
         email: adminEmail,
-        phone: '9800000000',
+        phone: process.env.ADMIN_PHONE || '9800000000',
         passwordHash: hashedPassword,
         role: 'admin',
         isActive: true,
