@@ -12,6 +12,7 @@ const allowedOrigins = [
   'https://alexjersey.rocks',
   'https://www.alexjersey.rocks',
   'https://admin.alexjersey.rocks',
+  'https://www.admin.alexjersey.rocks',
   process.env.CLIENT_URL,
   process.env.ADMIN_URL,
 ].filter(Boolean) as string[];
@@ -98,13 +99,13 @@ async function startServer() {
     await seedDatabase();
 
     // Ensure the ENV admin exists or is updated
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@gmail.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-    const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+    const adminEmail = process.env.ADMIN_EMAIL ;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminUsername = process.env.ADMIN_USERNAME ;
     
     const existingAdmin = await User.findOne({ where: { email: adminEmail } });
     if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash(adminPassword, 12);
+      const hashedPassword = await bcrypt.hash(adminPassword as string, 12);
       await User.create({
         name: adminUsername,
         email: adminEmail,
