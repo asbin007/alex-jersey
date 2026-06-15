@@ -85,6 +85,7 @@ import './models/associations';
 import { seedDatabase } from './config/seed';
 import { User } from './models/User';
 import bcrypt from 'bcrypt';
+import { envConfig } from './config/config';
 
 async function startServer() {
   try {
@@ -99,9 +100,9 @@ async function startServer() {
     await seedDatabase();
 
     // Ensure the ENV admin exists or is updated
-    const adminEmail = process.env.ADMIN_EMAIL ;
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    const adminUsername = process.env.ADMIN_USERNAME ;
+    const adminEmail = envConfig.admin.email;
+    const adminPassword = envConfig.admin.password;
+    const adminUsername = envConfig.admin.username;
     
     const existingAdmin = await User.findOne({ where: { email: adminEmail } });
     if (!existingAdmin) {
