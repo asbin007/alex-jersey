@@ -40,8 +40,8 @@ const createOrderValidation = [
     .bail()
     .isLength({ max: 20 })
     .withMessage('Custom name must not exceed 20 characters')
-    .matches(/^[a-zA-Z\s]*$/)
-    .withMessage('Custom name must contain only letters and spaces'),
+    .matches(/^[a-zA-Z0-9\s]*$/)
+    .withMessage('Custom name must contain only letters, numbers and spaces'),
   body('items.*.customNumber')
     .optional({ nullable: true, checkFalsy: false })
     .isString()

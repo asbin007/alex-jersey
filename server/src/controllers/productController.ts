@@ -193,8 +193,8 @@ export async function validateCustomization(req: Request, res: Response): Promis
         res.status(400).json({ error: 'Custom name must not exceed 20 characters', valid: false });
         return;
       }
-      if (!/^[a-zA-Z\s]*$/.test(customName)) {
-        res.status(400).json({ error: 'Custom name must contain only letters and spaces', valid: false });
+      if (!/^[a-zA-Z0-9\s]*$/.test(customName)) {
+        res.status(400).json({ error: 'Custom name must contain only letters, numbers and spaces', valid: false });
         return;
       }
     }
