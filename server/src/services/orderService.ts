@@ -27,7 +27,7 @@ export class ValidationError extends Error {
  * and enforces field-level rules on customName and customNumber.
  */
 export async function validateCustomization(items: CartItem[], t?: any): Promise<void> {
-  const nameRegex = /^[a-zA-Z\s]*$/;
+  const nameRegex = /^[a-zA-Z0-9\s]*$/;
 
   for (const item of items) {
     const hasCustomName = item.customName !== undefined && item.customName !== null && item.customName !== '';
