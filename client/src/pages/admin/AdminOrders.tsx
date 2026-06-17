@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, ChevronDown, Loader2, Truck, DollarSign, User } from 'lucide-react'
+import { Search, ChevronDown, Truck, DollarSign, User } from 'lucide-react'
 import {
   fetchAdminOrders,
   updateOrderStatus,
