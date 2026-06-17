@@ -1,0 +1,52 @@
+services:
+  # ─── WAHA — WhatsApp HTTP API ────────────────────────────────────────────────
+  # Swagger UI: http://localhost:3000/
+  # Dashboard:  http://localhost:3000/dashboard
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: jersey_waha
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - waha_sessions:/app/.sessions
+    environment:
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WAHA_LOG_LEVEL=info
+      # Fixed API key — no random key on every restart
+      - WAHA_API_KEY=${WAHA_API_KEY:-jersey_waha_key}
+      - WAHA_DASHBOARD_USERNAME=${WAHA_DASHBOARD_USERNAME:-admin}
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASSWORD:-admin123}
+      # Auto-register webhook so incoming messages hit our server
+      # Uses host.docker.internal to reach the host machine from inside Docker
+      - WHATSAPP_HOOK_URL=http://host.docker.internal:5000/api/webhooks/whatsapp
+      - WHATSAPP_HOOK_EVENTS=message
+    healthcheck:
+      # /ping requires no auth — safe to use here
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/ping']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ─── Your Express API Server ─────────────────────────────────────────────────
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: jersey_server
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    env_file:
+      - ./server/.env
+    environment:
+      - WAHA_URL=http://waha:3000
+      - WAHA_SESSION=default
+      - WAHA_API_KEY=${WAHA_API_KEY:-jersey_waha_key}
+    depends_on:
+      waha:
+        condition: service_healthy
+
+volumes:
+  waha_sessions:

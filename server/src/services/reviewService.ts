@@ -34,6 +34,20 @@ export async function hasPurchased(userId: string, productId: string): Promise<b
   return checkVerifiedPurchase(userId, productId);
 }
 
+export async function getReviewStatus(userId: string, productId: string) {
+  const purchased = await checkVerifiedPurchase(userId, productId);
+  const existingReview = await Review.findOne({
+    where: { userId, productId },
+  });
+
+  return {
+    hasPurchased: purchased,
+    hasReviewed: !!existingReview,
+    canReview: purchased && !existingReview,
+    review: existingReview,
+  };
+}
+
 /**
  * Create a new review for a product.
  * - Enforces one review per user per product

@@ -40,6 +40,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('cart', JSON.stringify(items))
   }, [items])
 
+  const MAX_QTY = 99
+
   const addToCart = (
     product: Product,
     size: Size,
@@ -51,9 +53,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(prev => {
       const existing = prev.find(i => i.id === id)
       if (existing) {
-        return prev.map(i => i.id === id ? { ...i, quantity: i.quantity + quantity } : i)
+        const next = Math.min(existing.quantity + quantity, MAX_QTY)
+        return prev.map(i => i.id === id ? { ...i, quantity: next } : i)
       }
-      return [...prev, { id, product, size, quantity, customName, customNumber }]
+      return [...prev, { id, product, size, quantity: Math.min(quantity, MAX_QTY), customName, customNumber }]
     })
   }
 
@@ -66,7 +69,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeFromCart(id)
       return
     }
-    setItems(prev => prev.map(i => i.id === id ? { ...i, quantity } : i))
+    setItems(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.min(quantity, MAX_QTY) } : i))
   }
 
   const clearCart = () => setItems([])

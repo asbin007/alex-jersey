@@ -4,11 +4,11 @@ import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, exact: true },
-  { label: 'Products', href: '/admin/products', icon: Package },
-  { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
-  { label: 'Users', href: '/admin/users', icon: Users },
-  { label: 'Delivery Team', href: '/admin/delivery', icon: Truck },
+  { label: 'Dashboard', shortLabel: 'Dash', href: '/admin', icon: LayoutDashboard, exact: true },
+  { label: 'Products', shortLabel: 'Products', href: '/admin/products', icon: Package },
+  { label: 'Orders', shortLabel: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+  { label: 'Users', shortLabel: 'Users', href: '/admin/users', icon: Users },
+  { label: 'Delivery', shortLabel: 'Delivery', href: '/admin/delivery', icon: Truck },
 ]
 
 export default function AdminLayout() {
@@ -56,7 +56,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Mobile bottom nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border flex">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border flex safe-bottom">
         {navItems.map(item => {
           const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
           return (
@@ -64,12 +64,12 @@ export default function AdminLayout() {
               key={item.href}
               to={item.href}
               className={cn(
-                'flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors',
+                'flex-1 flex flex-col items-center gap-0.5 py-2 px-1 text-[10px] transition-colors min-w-0',
                 active ? 'text-primary' : 'text-muted-foreground'
               )}
             >
-              <item.icon className="w-5 h-5" />
-              {item.label}
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className="truncate w-full text-center leading-tight">{item.shortLabel}</span>
             </Link>
           )
         })}

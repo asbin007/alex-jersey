@@ -13,11 +13,13 @@ import {
   Crown,
   ExternalLink,
   Truck,
+  MessageCircle,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { cn, formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { getStoredUser, clearAuth, isAdminUser } from '@/store/auth'
+import WhatsAppSidebarDot from '@/components/WhatsAppSidebarDot'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -26,6 +28,7 @@ const navItems = [
   { label: 'Reviews', href: '/reviews', icon: Star },
   { label: 'Users', href: '/userTable', icon: Users },
   { label: 'Delivery Team', href: '/delivery', icon: Truck },
+  { label: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -112,6 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <ExternalLink className="h-4 w-4" />
             View Store
           </a>
+          <WhatsAppSidebarDot />
           <button
             onClick={logout}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"

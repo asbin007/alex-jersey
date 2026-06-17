@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Edit, Trash2, Search, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, Eye, EyeOff } from 'lucide-react'
 import { fetchAdminProducts, updateAdminProduct, deleteAdminProduct } from '@/services/adminService'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { AdminProductRowSkeleton } from '@/components/ui/skeleton'
 import type { Product } from '@/types'
 
 export default function AdminProducts() {
@@ -52,13 +53,13 @@ export default function AdminProducts() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-black text-foreground">Products</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-foreground">Products</h1>
           <p className="text-sm text-muted-foreground mt-1">{products.length} total products</p>
         </div>
         <Link to="/admin/products/new">
-          <Button className="bg-primary hover:bg-primary/90 text-white font-bold">
+          <Button className="bg-primary hover:bg-primary/90 text-black font-bold text-sm">
             <Plus className="w-4 h-4 mr-1" /> Add Product
           </Button>
         </Link>
@@ -76,11 +77,6 @@ export default function AdminProducts() {
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      ) : (
       <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -95,19 +91,22 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(product => (
-                <tr key={product._id} className="border-b border-border/30 last:border-0 hover:bg-white/3 transition-colors">
+              {loading
+                ? Array.from({ length: 8 }).map((_, i) => <AdminProductRowSkeleton key={i} />)
+                : filtered.map(product => (
+                <tr key={product._id} className="border-b border-border/30 last:border-0 hover:bg-white/[0.03] transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <img
                         src={product.images[0]}
                         alt={product.name}
                         className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=60&q=50'
+                        onError={e => {
+                          (e.target as HTMLImageElement).src =
+                            'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=60&q=50'
                         }}
                       />
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-sm font-medium text-foreground line-clamp-1">{product.name}</p>
                         <p className="text-xs text-muted-foreground">{product.team}</p>
                       </div>
@@ -117,13 +116,21 @@ export default function AdminProducts() {
                     <Badge variant="outline" className="text-xs capitalize">{product.category}</Badge>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-sm font-semibold text-foreground">Rs. {product.price.toLocaleString()}</p>
+                    <p className="text-sm font-semibold text-foreground">Rs.&nbsp;{product.price.toLocaleString()}</p>
                     {product.compareAtPrice && (
-                      <p className="text-xs text-muted-foreground line-through">Rs. {product.compareAtPrice.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground line-through">
+                        Rs.&nbsp;{product.compareAtPrice.toLocaleString()}
+                      </p>
                     )}
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
-                    <span className={`text-sm font-medium ${totalStock(product) === 0 ? 'text-destructive' : totalStock(product) < 5 ? 'text-yellow-400' : 'text-green-400'}`}>
+                    <span className={`text-sm font-medium ${
+                      totalStock(product) === 0
+                        ? 'text-destructive'
+                        : totalStock(product) < 5
+                        ? 'text-yellow-400'
+                        : 'text-green-400'
+                    }`}>
                       {totalStock(product)}
                     </span>
                   </td>
@@ -160,8 +167,10 @@ export default function AdminProducts() {
             </tbody>
           </table>
         </div>
+        {!loading && filtered.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground py-12">No products found</p>
+        )}
       </div>
-      )}
     </div>
   )
 }

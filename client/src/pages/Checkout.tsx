@@ -158,8 +158,8 @@ export default function Checkout() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <div className="grid lg:grid-cols-5 gap-8">
-          <form onSubmit={submit} className="lg:col-span-3 space-y-5">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-8">
+          <form onSubmit={submit} className="md:col-span-1 lg:col-span-3 space-y-5">
 
             <div className="bg-[#080808] border border-[#1a1a1a] rounded-2xl p-5 space-y-4">
               <p className="font-black text-white text-sm uppercase tracking-wider">📍 Delivery Details</p>
@@ -203,7 +203,7 @@ export default function Checkout() {
           </form>
 
           {/* Summary */}
-          <div className="lg:col-span-2">
+          <div className="md:col-span-1 lg:col-span-2">
             <div className="bg-[#080808] border border-[#1a1a1a] rounded-2xl p-5 sticky top-24">
               <p className="font-black text-white text-lg mb-5">Order Summary</p>
               <div className="space-y-3 mb-5">

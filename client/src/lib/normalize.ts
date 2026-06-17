@@ -96,9 +96,19 @@ export function normalizeUser(raw: Raw): User {
 }
 
 export function normalizeReview(raw: Raw): Review {
+  const userRaw = raw.user
+  const userName =
+    userRaw && typeof userRaw === 'object' && 'name' in userRaw
+      ? String((userRaw as { name?: string }).name ?? '')
+      : undefined
+
   return {
     _id: String(raw.id ?? raw._id ?? ''),
-    user: String(raw.userId ?? raw.user ?? ''),
+    user:
+      userRaw && typeof userRaw === 'object' && 'id' in userRaw
+        ? String((userRaw as { id?: string }).id ?? '')
+        : String(raw.userId ?? raw.user ?? ''),
+    userName: userName || undefined,
     product: String(raw.productId ?? raw.product ?? ''),
     rating: Number(raw.rating ?? 0),
     comment: raw.comment ?? '',

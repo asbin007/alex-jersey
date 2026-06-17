@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { fetchDashboardStats } from '@/lib/services'
 import { formatCurrency } from '@/lib/utils'
 import type { DashboardStats, OrderStatus } from '@/types'
+import WhatsAppStatusCard from '@/components/WhatsAppStatusCard'
 
 const statusVariant: Record<OrderStatus, 'default' | 'success' | 'warning' | 'destructive' | 'outline'> = {
   pending: 'warning',
@@ -78,6 +79,9 @@ export default function DashboardPage() {
 
           {/* Alert banners */}
           <div className="space-y-3">
+            {/* WhatsApp connection status */}
+            <WhatsAppStatusCard />
+
             {stats.pendingOrders > 0 && (
               <Card className="border-yellow-500/30 bg-yellow-500/5">
                 <CardContent className="flex items-center justify-between py-3">

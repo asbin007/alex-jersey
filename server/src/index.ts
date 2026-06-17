@@ -48,6 +48,9 @@ import adminReviewRoutes from './routes/admin/reviews';
 import adminDashboardRoutes from './routes/admin/dashboard';
 import adminUserRoutes from './routes/admin/users';
 import adminDeliveryRoutes from './routes/admin/delivery';
+import adminWhatsAppRoutes from './routes/admin/whatsapp';
+import adminWhatsAppMessagesRoutes from './routes/admin/whatsappMessages';
+import whatsappWebhookRoutes from './routes/webhooks/whatsapp';
 
 // Health check route
 app.get('/api/health', (_req, res) => {
@@ -69,6 +72,11 @@ app.use('/api/admin/orders', adminOrderRoutes);
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/admin/users', adminUserRoutes);
 app.use('/api/admin/delivery-boys', adminDeliveryRoutes);
+app.use('/api/admin/whatsapp', adminWhatsAppRoutes);
+app.use('/api/admin/whatsapp', adminWhatsAppMessagesRoutes);
+
+// WAHA webhook — no auth (WAHA posts here directly)
+app.use('/api/webhooks/whatsapp', whatsappWebhookRoutes);
 
 // Review routes
 app.use('/api/reviews', reviewRoutes);

@@ -5,6 +5,7 @@ import { Order } from './Order';
 import { OrderItem } from './OrderItem';
 import { StatusHistoryEntry } from './StatusHistoryEntry';
 import { Review } from './Review';
+import { WhatsAppMessage } from './WhatsAppMessage';
 
 // User <-> Order (customer)
 User.hasMany(Order, { foreignKey: 'userId', as: 'orders' });
@@ -46,4 +47,5 @@ export {
   OrderItem,
   StatusHistoryEntry,
   Review,
+  WhatsAppMessage,
 };

@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useGoogleLogin } from '@react-oauth/google'
 import { useAuth } from '@/context/AuthContext'
 
 export default function Login() {
   const { loginWithGoogle } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/'
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -15,7 +17,7 @@ export default function Login() {
       setError('')
       try {
         await loginWithGoogle(tokenResponse.access_token)
-        navigate('/')
+        navigate(redirect.startsWith('/') ? redirect : '/')
       } catch {
         setError('Sign-in failed. Please try again.')
         setLoading(false)
@@ -34,10 +36,12 @@ export default function Login() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white font-black text-xl mx-auto mb-4">
-            NJ
+          <div className="w-14 h-14 bg-[#FFD700] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_24px_rgba(255,215,0,0.4)]">
+            <span className="text-black font-black text-xl">👑</span>
           </div>
-          <h1 className="text-3xl font-black text-foreground">Nepal Jersey</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-foreground">
+            ALEX <span className="gold-text">JERSEY</span>
+          </h1>
           <p className="text-sm text-muted-foreground mt-2">Sign in to continue shopping</p>
         </div>
 

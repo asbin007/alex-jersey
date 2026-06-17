@@ -133,3 +133,40 @@ export async function updateDeliveryStatus(orderId: string, status: OrderStatus)
   const { data } = await api.patch(`/delivery/orders/${orderId}/status`, { status })
   return data
 }
+
+export interface WhatsAppStatus {
+  connected: boolean
+  status: string        // WORKING | STARTING | STOPPED | FAILED | SCAN_QR_CODE | UNAVAILABLE
+  session: string
+  me: { id: string; pushName: string } | null
+}
+
+export async function fetchWhatsAppStatus(): Promise<WhatsAppStatus> {
+  const { data } = await api.get('/admin/whatsapp/status')
+  return data as WhatsAppStatus
+}
+
+export interface WAMessage {
+  id: string
+  from: string
+  fromName: string | null
+  body: string
+  repliedWith: string | null
+  isRead: boolean
+  createdAt: string
+}
+
+export async function fetchWhatsAppMessages(params?: {
+  page?: number; limit?: number; unreadOnly?: boolean
+}): Promise<{ data: WAMessage[]; total: number; unread: number; totalPages: number }> {
+  const { data } = await api.get('/admin/whatsapp/messages', { params })
+  return data
+}
+
+export async function markMessageRead(id: string): Promise<void> {
+  await api.patch(`/admin/whatsapp/messages/${id}/read`)
+}
+
+export async function markAllMessagesRead(): Promise<void> {
+  await api.patch('/admin/whatsapp/messages/read-all')
+}

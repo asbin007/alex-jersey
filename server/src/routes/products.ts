@@ -14,6 +14,24 @@ const router = Router();
 // GET /api/products - List products with filters, search, pagination, sorting
 router.get('/', getProducts);
 
+// GET /api/products/:id/reviews/status - Check if authenticated user can review
+router.get('/:id/reviews/status', auth, [
+  param('id').isUUID().withMessage('Valid product ID is required'),
+], async (req: Request, res: Response): Promise<void> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array() });
+    return;
+  }
+
+  try {
+    const status = await reviewService.getReviewStatus(req.user!.userId, req.params.id);
+    res.json(status);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch review status' });
+  }
+});
+
 // GET /api/products/:id/reviews - Get approved reviews for a product (public)
 router.get('/:id/reviews', [
   param('id').isUUID().withMessage('Valid product ID is required'),

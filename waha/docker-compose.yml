@@ -1,0 +1,51 @@
+services:
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha
+    restart: always
+    ports:
+      - '3000:3000'
+    volumes:
+      - waha_sessions:/app/.sessions
+    environment:
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WAHA_LOG_LEVEL=info
+      # Set these via .env file on the VPS — do NOT commit real values
+      - WAHA_API_KEY=${WAHA_API_KEY}
+      - WAHA_DASHBOARD_USERNAME=${WAHA_DASHBOARD_USERNAME}
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASSWORD}
+      # Points back to your Render server
+      - WHATSAPP_HOOK_URL=${SERVER_URL}/api/webhooks/whatsapp
+      - WHATSAPP_HOOK_EVENTS=message
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/ping']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # Nginx reverse proxy — handles SSL termination for WAHA
+  nginx:
+    image: nginx:alpine
+    container_name: waha_nginx
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_certs:/etc/letsencrypt:ro
+    depends_on:
+      - waha
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+
+volumes:
+  waha_sessions:
+  certbot_www:
+  certbot_certs:

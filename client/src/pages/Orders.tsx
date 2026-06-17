@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Package, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { Package, ChevronDown, ChevronUp } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { fetchMyOrders } from '@/services/orderService'
 import { Badge } from '@/components/ui/badge'
+import { OrderRowSkeleton } from '@/components/ui/skeleton'
 import type { Order, OrderStatus } from '@/types'
 
 const statusVariant: Record<OrderStatus, 'default' | 'primary' | 'success' | 'warning' | 'destructive' | 'outline'> = {
@@ -29,23 +30,27 @@ function OrderRow({ order }: { order: Order }) {
 
   return (
     <div className="bg-[#080808] border border-[#1a1a1a] rounded-2xl overflow-hidden hover:border-[#FFD700]/15 transition-colors">
-      <div className="flex items-center justify-between p-4 cursor-pointer"
-        onClick={() => setExpanded(!expanded)}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#FFD700]/10 rounded-xl flex items-center justify-center">
-            <Package className="w-5 h-5 text-[#FFD700]" />
+      <div
+        className="flex items-center justify-between p-4 cursor-pointer gap-3"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#FFD700]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Package className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFD700]" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="font-bold text-white text-sm">{order.orderNumber}</p>
-            <p className="text-xs text-[#555]">
-              {new Date(order.createdAt).toLocaleDateString('en-NP', { year: 'numeric', month: 'short', day: 'numeric' })}
+            <p className="text-xs text-[#555] truncate">
+              {new Date(order.createdAt).toLocaleDateString('en-NP', {
+                year: 'numeric', month: 'short', day: 'numeric',
+              })}
               {' · '}{order.items.length} item{order.items.length > 1 ? 's' : ''}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="text-right">
-            <p className="font-bold text-white">Rs. {order.total.toLocaleString()}</p>
+            <p className="font-bold text-white text-sm">Rs. {order.total.toLocaleString()}</p>
             <Badge variant={statusVariant[order.status]} className="text-xs">
               {statusEmoji[order.status]} {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
             </Badge>
@@ -57,23 +62,27 @@ function OrderRow({ order }: { order: Order }) {
       </div>
 
       {expanded && (
-        <div className="border-t border-[#111] px-4 pb-4 pt-3">
-          <div className="space-y-2 mb-4">
+        <div className="border-t border-[#111] px-4 pb-5 pt-4 space-y-4">
+          {/* Items */}
+          <div className="space-y-2">
             {order.items.map((item, i) => (
-              <div key={i} className="flex justify-between items-center text-sm">
-                <div>
-                  <span className="text-white">{item.productName}</span>
+              <div key={i} className="flex justify-between items-start gap-2 text-sm">
+                <div className="min-w-0">
+                  <span className="text-white font-medium">{item.productName}</span>
                   <span className="text-[#555]"> · {item.size} × {item.quantity}</span>
                   {(item.customName || item.customNumber) && (
                     <span className="text-[#FFD700]"> [{item.customName} {item.customNumber}]</span>
                   )}
                 </div>
-                <span className="text-white font-medium">Rs. {item.price.toLocaleString()}</span>
+                <span className="text-white font-bold flex-shrink-0">
+                  Rs. {item.price.toLocaleString()}
+                </span>
               </div>
             ))}
           </div>
 
-          <div className="border-t border-[#111] pt-3 space-y-1 mb-3">
+          {/* Totals */}
+          <div className="border-t border-[#111] pt-3 space-y-1.5">
             <div className="flex justify-between text-sm">
               <span className="text-[#555]">Subtotal</span>
               <span className="text-white">Rs. {order.subtotal.toLocaleString()}</span>
@@ -82,35 +91,41 @@ function OrderRow({ order }: { order: Order }) {
               <span className="text-[#555]">Delivery</span>
               <span className="text-white">Rs. {order.deliveryCharge}</span>
             </div>
-            <div className="flex justify-between font-bold">
+            <div className="flex justify-between font-black text-base pt-1">
               <span className="text-white">Total</span>
               <span className="gold-text">Rs. {order.total.toLocaleString()}</span>
             </div>
           </div>
 
-          <div className="p-3 bg-black rounded-xl text-xs text-[#555] mb-4">
+          {/* Delivery info */}
+          <div className="p-3 bg-black rounded-xl text-xs text-[#555] space-y-1">
             <p>📍 {order.customer.deliveryAddress}, {order.customer.city}</p>
             <p>📱 {order.customer.phone}</p>
             {order.customer.note && <p>📝 {order.customer.note}</p>}
           </div>
 
-          <p className="text-[10px] font-black text-[#444] uppercase tracking-widest mb-3">Order Timeline</p>
-          <div className="space-y-2">
-            {order.statusHistory.map((entry, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                  i === order.statusHistory.length - 1 ? 'bg-[#FFD700]' : 'bg-[#333]'
-                }`} />
-                <div>
-                  <p className="text-sm font-bold text-white capitalize">
-                    {statusEmoji[entry.status]} {entry.status}
-                  </p>
-                  <p className="text-xs text-[#555]">
-                    {new Date(entry.timestamp).toLocaleString('en-NP')}
-                  </p>
+          {/* Timeline */}
+          <div>
+            <p className="text-[10px] font-black text-[#444] uppercase tracking-widest mb-3">
+              Order Timeline
+            </p>
+            <div className="space-y-2">
+              {order.statusHistory.map((entry, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                    i === order.statusHistory.length - 1 ? 'bg-[#FFD700]' : 'bg-[#333]'
+                  }`} />
+                  <div>
+                    <p className="text-sm font-bold text-white capitalize">
+                      {statusEmoji[entry.status as OrderStatus]} {entry.status}
+                    </p>
+                    <p className="text-xs text-[#555]">
+                      {new Date(entry.timestamp).toLocaleString('en-NP')}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -121,10 +136,11 @@ function OrderRow({ order }: { order: Order }) {
 export default function Orders() {
   const { isAuthenticated } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
+  // Only show loading when authenticated — avoids the setState-in-effect warning
+  const [loading, setLoading] = useState(isAuthenticated)
 
   useEffect(() => {
-    if (!isAuthenticated) { setLoading(false); return }
+    if (!isAuthenticated) return
     fetchMyOrders()
       .then(setOrders)
       .catch(console.error)
@@ -154,8 +170,8 @@ export default function Orders() {
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-[#FFD700]" />
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => <OrderRowSkeleton key={i} />)}
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-20">

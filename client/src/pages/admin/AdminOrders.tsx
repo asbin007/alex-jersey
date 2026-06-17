@@ -8,6 +8,7 @@ import {
   fetchAdminUsers,
 } from '@/services/adminService'
 import { Badge } from '@/components/ui/badge'
+import { AdminOrderRowSkeleton } from '@/components/ui/skeleton'
 import type { Order, OrderStatus, User as UserType } from '@/types'
 
 const ALL_STATUSES: OrderStatus[] = ['pending', 'confirmed', 'processing', 'ontheway', 'delivered', 'cancelled']
@@ -106,32 +107,32 @@ export default function AdminOrders() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-card border border-border/50 rounded-xl p-4 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
-            <DollarSign className="w-4 h-4 text-destructive" />
+      <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3 mb-6">
+        <div className="bg-card border border-border/50 rounded-xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+            <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-destructive" />
           </div>
-          <div>
-            <p className="text-lg font-black text-foreground">{totalUnpaid}</p>
-            <p className="text-xs text-muted-foreground">Unpaid</p>
-          </div>
-        </div>
-        <div className="bg-card border border-border/50 rounded-xl p-4 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
-            <Truck className="w-4 h-4 text-yellow-500" />
-          </div>
-          <div>
-            <p className="text-lg font-black text-foreground">{unassigned}</p>
-            <p className="text-xs text-muted-foreground">Unassigned</p>
+          <div className="min-w-0">
+            <p className="text-base sm:text-lg font-black text-foreground">{totalUnpaid}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Unpaid</p>
           </div>
         </div>
-        <div className="bg-card border border-border/50 rounded-xl p-4 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <User className="w-4 h-4 text-primary" />
+        <div className="bg-card border border-border/50 rounded-xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
+            <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500" />
           </div>
-          <div>
-            <p className="text-lg font-black text-foreground">{deliveryBoys.length}</p>
-            <p className="text-xs text-muted-foreground">Delivery boys</p>
+          <div className="min-w-0">
+            <p className="text-base sm:text-lg font-black text-foreground">{unassigned}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Unassigned</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border/50 rounded-xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-base sm:text-lg font-black text-foreground">{deliveryBoys.length}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Delivery</p>
           </div>
         </div>
       </div>
@@ -169,8 +170,8 @@ export default function AdminOrders() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => <AdminOrderRowSkeleton key={i} />)}
         </div>
       ) : (
         <div className="space-y-2">

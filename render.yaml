@@ -8,3 +8,57 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+
+      # ── Database ──────────────────────────────────────────────────────────
+      - key: DATABASE_URL
+        sync: false   # set manually in Render dashboard
+
+      # ── Auth ──────────────────────────────────────────────────────────────
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRE_IN
+        value: 24h
+
+      # ── Cloudinary ────────────────────────────────────────────────────────
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      # ── Email ─────────────────────────────────────────────────────────────
+      - key: EMAIL
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+
+      # ── Admin account ─────────────────────────────────────────────────────
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_USERNAME
+        sync: false
+
+      # ── CORS origins ──────────────────────────────────────────────────────
+      - key: CLIENT_URL
+        value: https://alexjersey.rocks
+      - key: ADMIN_URL
+        value: https://admin.alexjersey.rocks
+
+      # ── WhatsApp (legacy wa.me link) ───────────────────────────────────────
+      - key: WHATSAPP_BUSINESS_NUMBER
+        sync: false
+
+      # ── WAHA (self-hosted on VPS) ─────────────────────────────────────────
+      # After deploying WAHA to your VPS, set these in the Render dashboard:
+      #   WAHA_URL=https://waha.yourdomain.com
+      #   WAHA_API_KEY=your_strong_key
+      #   WAHA_SESSION=default
+      - key: WAHA_URL
+        sync: false
+      - key: WAHA_API_KEY
+        sync: false
+      - key: WAHA_SESSION
+        value: default

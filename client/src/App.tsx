@@ -6,6 +6,8 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import AdminLayout from '@/components/admin/AdminLayout'
 import DeliveryLayout from '@/components/delivery/DeliveryLayout'
+import ScrollToTop from '@/components/ScrollToTop'
+import FloatingWhatsApp from '@/components/layout/FloatingWhatsApp'
 
 // Pages
 import Home from '@/pages/Home'
@@ -36,6 +38,7 @@ function MainLayout() {
         <Outlet />
       </main>
       <Footer />
+      <FloatingWhatsApp />
     </div>
   )
 }
@@ -44,6 +47,7 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <CartProvider>
           <Routes>

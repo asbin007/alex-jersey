@@ -6,6 +6,7 @@ import { CreateOrderDTO, OrderFilters, CartItem } from '../types/dto';
 import { OrderStatus, PaginatedResult } from '../types';
 import { calculateDeliveryCharge } from '../utils/deliveryCharge';
 import { generateOrderNumber } from '../utils/orderNumber';
+import { whatsappService } from './whatsappService';
 
 export interface OrderResponse {
   order: any;
@@ -195,8 +196,12 @@ export async function createOrder(
       transaction: t,
     });
 
-    // Step 9: Generate WhatsApp URL
+    // Step 9: Generate WhatsApp URL (for admin/legacy wa.me link)
     const whatsappUrl = generateWhatsAppMessage(completeOrder);
+
+    // Step 10: Fire-and-forget WhatsApp notification to the customer
+    // Runs outside the transaction so a WA failure never rolls back the order
+    whatsappService.notifyOrderPlaced(completeOrder).catch(() => {});
 
     return { order: completeOrder, whatsappUrl };
   });
@@ -269,7 +274,7 @@ export async function updateOrderStatus(
       note,
     }, { transaction: t });
 
-    return Order.findByPk(orderId, {
+    const updatedOrder = await Order.findByPk(orderId, {
       include: [
         {
           model: OrderItem,
@@ -280,6 +285,13 @@ export async function updateOrderStatus(
       ],
       transaction: t,
     });
+
+    // Fire-and-forget WhatsApp status update to the customer
+    if (updatedOrder) {
+      whatsappService.notifyStatusUpdate(updatedOrder, status).catch(() => {});
+    }
+
+    return updatedOrder;
   });
 }
 
@@ -403,6 +415,7 @@ export async function updatePaymentStatus(
 
 /**
  * Assigns (or unassigns) a delivery boy to an order.
+ * Sends a WhatsApp notification to the delivery boy when assigned.
  */
 export async function assignDeliveryBoy(
   orderId: string,
@@ -411,12 +424,27 @@ export async function assignDeliveryBoy(
   const order = await Order.findByPk(orderId);
   if (!order) return null;
   await order.update({ deliveryBoyId });
-  return Order.findByPk(orderId, {
+
+  const updatedOrder = await Order.findByPk(orderId, {
     include: [
       { model: OrderItem, as: 'items' },
       { model: StatusHistoryEntry, as: 'statusHistory' },
     ],
   });
+
+  // Notify the delivery boy if one was assigned (not unassigned)
+  if (deliveryBoyId && updatedOrder) {
+    const deliveryBoy = await User.findByPk(deliveryBoyId, {
+      attributes: ['name', 'phone'],
+    });
+    if (deliveryBoy?.phone) {
+      whatsappService
+        .notifyDeliveryBoyAssigned(deliveryBoy.phone, deliveryBoy.name, updatedOrder)
+        .catch(() => {});
+    }
+  }
+
+  return updatedOrder;
 }
 
 /**

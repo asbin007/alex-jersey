@@ -110,6 +110,7 @@ export interface Order {
 export interface Review {
   _id: string;
   user: string;
+  userName?: string;
   product: string;
   rating: number;
   comment: string;
