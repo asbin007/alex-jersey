@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, ShoppingCart, Check, Star, Zap, ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
 import ProductCard from '@/components/products/ProductCard'
 import ProductReviews from '@/components/products/ProductReviews'
 import { ProductDetailSkeleton } from '@/components/ui/skeleton'
+import SEO from '@/components/SEO'
+import StockUrgency from '@/components/marketing/StockUrgency'
+import WhatsAppShare from '@/components/marketing/WhatsAppShare'
 import type { Size, Product } from '@/types'
 import { fetchProduct, fetchRelatedProducts } from '@/services/productService'
 
@@ -23,7 +27,6 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false)
   const [sizeErr, setSizeErr] = useState(false)
 
-  // Reset all state when slug changes (navigating between products)
   useEffect(() => {
     if (!slug) return
     setProduct(undefined)
@@ -50,31 +53,35 @@ export default function ProductDetail() {
       })
   }, [slug])
 
-  if (!product) return (
-    <div className="min-h-screen bg-black text-white pt-16">
-      {/* Breadcrumb placeholder */}
-      <div className="border-b border-[#0f0f0f] bg-[#050505] px-4 py-3">
-        <div className="max-w-7xl mx-auto">
-          <Link to="/products" className="inline-flex items-center gap-1.5 text-sm text-[#555] hover:text-[#FFD700] transition-colors font-semibold">
-            <ArrowLeft className="w-3.5 h-3.5" /> All Jerseys
-          </Link>
-        </div>
-      </div>
-      {loading ? (
-        <ProductDetailSkeleton />
-      ) : (
-        <div className="flex items-center justify-center py-32 px-4">
-          <div className="text-center">
-            <div className="text-6xl mb-4">😞</div>
-            <p className="text-xl font-black text-white mb-3">Jersey not found</p>
-            <Link to="/products" className="text-[#FFD700] hover:underline font-semibold">
-              ← Back to Shop
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-black text-white pt-16">
+        <div className="border-b border-[#0f0f0f] bg-[#050505] px-4 py-3">
+          <div className="max-w-7xl mx-auto">
+            <Link
+              to="/products"
+              className="inline-flex items-center gap-1.5 text-sm text-[#555] hover:text-[#FFD700] transition-colors font-semibold"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> All Jerseys
             </Link>
           </div>
         </div>
-      )}
-    </div>
-  )
+        {loading ? (
+          <ProductDetailSkeleton />
+        ) : (
+          <div className="flex items-center justify-center py-32 px-4">
+            <div className="text-center">
+              <div className="text-6xl mb-4">😞</div>
+              <p className="text-xl font-black text-white mb-3">Jersey not found</p>
+              <Link to="/products" className="text-[#FFD700] hover:underline font-semibold">
+                ← Back to Shop
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   const disc = product.compareAtPrice
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
@@ -88,8 +95,29 @@ export default function ProductDetail() {
     setTimeout(() => setAdded(false), 2000)
   }
 
+  const capType = product.jerseyType.charAt(0).toUpperCase() + product.jerseyType.slice(1)
+
   return (
     <div className="min-h-screen bg-black text-white pt-16">
+      <SEO
+        title={`${product.name} — ${product.team} ${capType} Kit`}
+        description={`${product.description} Buy ${product.team} ${product.jerseyType} kit online in Nepal. Cash on Delivery available.`}
+        keywords={`${product.name}, ${product.team} jersey, FIFA World Cup 2026, ${product.jerseyType} kit, football jersey Nepal, Cash on Delivery`}
+        image={product.images[0]}
+        url={`/products/${product.slug ?? ''}`}
+        type="product"
+        product={{
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          currency: 'NPR',
+          availability: product.sizes.some(s => s.stock > 0) ? 'in_stock' : 'out_of_stock',
+          image: product.images[0],
+          brand: product.team,
+          rating: product.rating,
+          reviewCount: product.reviewCount,
+        }}
+      />
 
       {/* Breadcrumb */}
       <div className="border-b border-[#0f0f0f] bg-[#050505] px-4 py-3">
@@ -107,23 +135,30 @@ export default function ProductDetail() {
         <div className="grid lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-12 mb-14 sm:mb-20">
 
           {/* ── IMAGE PANEL ── */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
-            {/* Main image */}
+          <motion.div
+            className="lg:sticky lg:top-24 lg:self-start"
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
             <div
               className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#080808] border border-[#1a1a1a] group"
               style={{ aspectRatio: '1' }}
             >
-              <img
+              <motion.img
+                key={imgIdx}
                 src={product.images[imgIdx]}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="w-full h-full object-cover"
+                initial={{ opacity: 0, scale: 1.04 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
                 onError={e => {
                   (e.target as HTMLImageElement).src =
                     'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=700&q=80'
                 }}
               />
 
-              {/* Arrow nav — visible on mobile too */}
               {product.images.length > 1 && (
                 <>
                   <button
@@ -141,7 +176,6 @@ export default function ProductDetail() {
                 </>
               )}
 
-              {/* Badges */}
               <div className="absolute top-3 left-3 flex flex-col gap-2">
                 {product.isLimitedDrop && (
                   <span className="tag-gold">
@@ -152,7 +186,6 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Thumbnails */}
             {product.images.length > 1 && (
               <div className="flex gap-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
                 {product.images.map((img, i) => (
@@ -170,11 +203,14 @@ export default function ProductDetail() {
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
 
           {/* ── INFO PANEL ── */}
-          <div>
-            {/* Badges row */}
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          >
             <div className="flex flex-wrap gap-2 mb-4">
               <span className="tag-gold">{product.team}</span>
               <span className="text-[10px] font-bold px-3 py-1 bg-[#111] border border-[#1f1f1f] rounded-full text-[#555] uppercase tracking-wider capitalize">
@@ -191,7 +227,6 @@ export default function ProductDetail() {
               {product.name}
             </h1>
 
-            {/* Rating */}
             <div className="flex items-center gap-2 sm:gap-3 mb-5">
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map(s => (
@@ -209,7 +244,14 @@ export default function ProductDetail() {
               <span className="text-sm text-[#555]">({product.reviewCount} reviews)</span>
             </div>
 
-            {/* Price */}
+            {/* Stock urgency */}
+            <div className="mb-5">
+              <StockUrgency
+                stock={product.sizes.reduce((a, s) => a + s.stock, 0)}
+                productId={product._id}
+              />
+            </div>
+
             <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 pb-5 mb-5 border-b border-[#111]">
               <span className="text-3xl sm:text-4xl font-black gold-text">
                 Rs. {product.price.toLocaleString()}
@@ -240,10 +282,11 @@ export default function ProductDetail() {
               </div>
               <div className="flex gap-2 flex-wrap">
                 {product.sizes.map(({ size, stock }) => (
-                  <button
+                  <motion.button
                     key={size}
                     disabled={stock === 0}
                     onClick={() => { setSelSize(size as Size); setSizeErr(false) }}
+                    whileTap={{ scale: stock > 0 ? 0.9 : 1 }}
                     className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl border-2 text-sm font-black transition-all ${
                       selSize === size
                         ? 'border-[#FFD700] bg-[#FFD700]/10 text-[#FFD700] shadow-[0_0_16px_rgba(255,215,0,0.3)]'
@@ -253,7 +296,7 @@ export default function ProductDetail() {
                     }`}
                   >
                     {size}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
               {selSize && (
@@ -298,8 +341,9 @@ export default function ProductDetail() {
             )}
 
             {/* Add to cart */}
-            <button
+            <motion.button
               onClick={handleAdd}
+              whileTap={{ scale: 0.97 }}
               className={`w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black text-base transition-all duration-300 mb-3 sm:mb-4 ${
                 added
                   ? 'bg-green-500 text-white shadow-[0_0_30px_rgba(34,197,94,0.4)]'
@@ -311,7 +355,7 @@ export default function ProductDetail() {
               ) : (
                 <><ShoppingCart className="w-5 h-5" /> Add to Cart</>
               )}
-            </button>
+            </motion.button>
 
             {/* WhatsApp CTA */}
             <a
@@ -339,7 +383,16 @@ export default function ProductDetail() {
                 </div>
               ))}
             </div>
-          </div>
+
+            {/* WhatsApp Share */}
+            <div className="mt-4">
+              <WhatsAppShare
+                productName={product.name}
+                productUrl={`https://alexjersey.com.np/products/${product.slug}`}
+                price={product.price}
+              />
+            </div>
+          </motion.div>
         </div>
 
         {/* Reviews */}

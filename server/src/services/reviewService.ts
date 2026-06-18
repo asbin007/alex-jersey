@@ -43,7 +43,7 @@ export async function getReviewStatus(userId: string, productId: string) {
   return {
     hasPurchased: purchased,
     hasReviewed: !!existingReview,
-    canReview: purchased && !existingReview,
+    canReview: !existingReview, // any logged-in user can review, no purchase required
     review: existingReview,
   };
 }
@@ -76,7 +76,7 @@ export async function createReview(
     comment: data.comment,
     images: data.images || [],
     isVerifiedPurchase,
-    isApproved: false,
+    isApproved: true, // auto-approve; no admin verification required
   });
 
   // Update the product's average rating

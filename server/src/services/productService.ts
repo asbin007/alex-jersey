@@ -284,3 +284,13 @@ export async function getRelatedProducts(
     include: [{ model: SizeStock, as: 'sizes' }],
   });
 }
+
+/**
+ * Get all active products for sitemap generation.
+ */
+export async function getAllProductsForSitemap(): Promise<any[]> {
+  return Product.findAll({
+    where: { isActive: true },
+    attributes: ['slug', 'images', 'updatedAt'],
+  });
+}

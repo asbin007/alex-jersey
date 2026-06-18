@@ -5,53 +5,20 @@ import {
   ShoppingCart,
   Zap,
   Trophy,
-  MapPin,
-  Truck,
-  Shield,
   Star,
   ChevronRight,
   Sparkles,
   Calendar,
-  Users,
 } from 'lucide-react'
 import { fetchProducts } from '@/services/productService'
 import ProductCard from '@/components/products/ProductCard'
 import { ProductGridSkeleton } from '@/components/ui/skeleton'
 import Reveal from '@/components/ui/Reveal'
+import SEO from '@/components/SEO'
+import TestimonialsSection from '@/components/marketing/TestimonialsSection'
+import TrustBadges from '@/components/marketing/TrustBadges'
 import type { Product } from '@/types'
 
-/* ─── Countdown to WC 2026 ─────────────────────────── */
-function useCountdown(target: number) {
-  const calc = () => {
-    const d = Math.max(0, target - Date.now())
-    return {
-      days: Math.floor(d / 86400000),
-      hours: Math.floor((d % 86400000) / 3600000),
-      minutes: Math.floor((d % 3600000) / 60000),
-      seconds: Math.floor((d % 60000) / 1000),
-    }
-  }
-  const [val, setVal] = useState(calc)
-  useEffect(() => {
-    const t = setInterval(() => setVal(calc()), 1000)
-    return () => clearInterval(t)
-  }, []) // eslint-disable-line
-  return val
-}
-
-function CountUnit({ n, label }: { n: number; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div className="countdown-cell relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
-        <span className="relative z-10 text-2xl font-black tabular-nums text-white sm:text-3xl">
-          {String(n).padStart(2, '0')}
-        </span>
-        <span className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-[#FFD700] to-transparent" />
-      </div>
-      <span className="text-[9px] font-black uppercase tracking-[0.22em] text-[#555]">{label}</span>
-    </div>
-  )
-}
 
 const hostNations = [
   { name: 'USA', flag: '🇺🇸', cities: 'New York · LA · Miami' },
@@ -85,12 +52,6 @@ const tournamentPhases = [
   { phase: 'Group Stage', dates: 'Jun 11 – Jun 27', desc: '48 teams · 12 groups' },
   { phase: 'Round of 32', dates: 'Jun 28 – Jul 3', desc: 'Knockout begins' },
   { phase: 'Final', dates: 'Jul 19', desc: 'MetLife Stadium, NJ' },
-]
-
-const testimonials = [
-  { name: 'Suman K.', city: 'Kathmandu', team: '🇦🇷 Argentina', text: 'Argentina home kit quality is top notch. Delivered in 2 days, paid on delivery. Perfect for World Cup season.' },
-  { name: 'Rajan T.', city: 'Pokhara', team: '🇧🇷 Brazil', text: 'Ordered Brazil away jersey on WhatsApp — super fast reply and exact sizing. Will order again for friends.' },
-  { name: 'Anisha M.', city: 'Biratnagar', team: '🇫🇷 France', text: 'Premium feel and sharp prints. Alex Jersey is my go-to for every tournament. Highly recommend!' },
 ]
 
 const tickerItems = [
@@ -212,8 +173,6 @@ function SpotlightCard({ product }: { product: Product }) {
 }
 
 export default function Home() {
-  const wc = useCountdown(new Date('2026-06-11T00:00:00Z').getTime())
-
   const [featured, setFeatured] = useState<Product[]>([])
   const [limited, setLimited] = useState<Product[]>([])
   const [newIn, setNewIn] = useState<Product[]>([])
@@ -241,7 +200,13 @@ export default function Home() {
   const heroProducts = featured.slice(0, 3)
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <>
+      <SEO
+        title="FIFA World Cup 2026 Jerseys - Home of Football Kits"
+        description="Shop official FIFA World Cup 2026 jerseys for all 48 nations — Argentina, Brazil, France, England and more. Cash on Delivery across Nepal. Order via WhatsApp or online."
+        keywords="FIFA World Cup 2026, football jerseys, soccer kits, Nepal, Cash on Delivery, WhatsApp order, Argentina jersey, Brazil jersey, France jersey"
+      />
+      <div className="min-h-screen bg-black text-white">
 
       {/* ── Ticker ── */}
       <div className="fixed top-16 z-40 w-full overflow-hidden border-b border-[#FFD700]/10 bg-black/90 backdrop-blur-md">
@@ -360,21 +325,7 @@ export default function Home() {
                 </a>
               </div>
 
-              {/* Countdown */}
-              <div className="fade-up delay-4">
-                <p className="mb-3 text-[9px] font-black uppercase tracking-[0.3em] text-[#444]">
-                  Kickoff Countdown
-                </p>
-                <div className="inline-flex items-end gap-2 rounded-2xl border border-[#1a1a1a] bg-black/40 p-4 sm:gap-3 sm:p-5">
-                  <CountUnit n={wc.days} label="Days" />
-                  <span className="mb-6 text-lg font-black text-[#333]">:</span>
-                  <CountUnit n={wc.hours} label="Hours" />
-                  <span className="mb-6 text-lg font-black text-[#333]">:</span>
-                  <CountUnit n={wc.minutes} label="Mins" />
-                  <span className="mb-6 text-lg font-black text-[#333]">:</span>
-                  <CountUnit n={wc.seconds} label="Secs" />
-                </div>
-              </div>
+
             </div>
 
             {/* Right — product showcase */}
@@ -666,6 +617,11 @@ export default function Home() {
         </section>
         </Reveal>
 
+        {/* ── Trust badges ── */}
+        <Reveal>
+          <TrustBadges />
+        </Reveal>
+
         {/* ── New Arrivals ── */}
         <Reveal>
           <section className="border-b border-[#111] py-12 sm:py-16">
@@ -682,57 +638,9 @@ export default function Home() {
         </section>
         </Reveal>
 
-        {/* ── Fan reviews ── */}
+        {/* ── Testimonials ── */}
         <Reveal>
-          <section className="border-b border-[#111] py-12 sm:py-16">
-            <SectionHeader eyebrow="Fan Love" title="What Supporters Say" />
-            <div className="grid gap-4 sm:grid-cols-3">
-              {testimonials.map(t => (
-                <div
-                  key={t.name}
-                  className="rounded-2xl border border-[#1a1a1a] bg-[#050505] p-5 sm:p-6"
-                >
-                  <div className="mb-3 flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-3.5 w-3.5 fill-[#FFD700] text-[#FFD700]" />
-                    ))}
-                  </div>
-                  <p className="mb-4 text-sm leading-relaxed text-[#888]">&ldquo;{t.text}&rdquo;</p>
-                  <div className="flex items-center justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-black text-white">{t.name}</p>
-                      <p className="text-[10px] text-[#555]">{t.city}</p>
-                    </div>
-                    <span className="text-lg">{t.team}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </Reveal>
-
-        {/* ── Why us ── */}
-        <Reveal>
-          <section className="py-12 sm:py-16">
-            <SectionHeader eyebrow="Why Alex Jersey" title="Built for Fans in Nepal" />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { icon: Shield, title: 'Official Grade', sub: 'World Cup 2026 quality fabrics & prints', color: 'text-[#FFD700]' },
-                { icon: Truck, title: 'All Nepal Delivery', sub: 'Kathmandu to every district in 2–3 days', color: 'text-sky-400' },
-                { icon: MapPin, title: 'Cash on Delivery', sub: 'Pay only when your jersey arrives', color: 'text-green-400' },
-                { icon: Users, title: 'WhatsApp Orders', sub: '9747235169 · 9864227012', color: 'text-[#25D366]' },
-              ].map(item => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-[#1a1a1a] bg-[#050505] p-5 transition-colors hover:border-[#FFD700]/20 sm:p-6"
-                >
-                  <item.icon className={`mb-4 h-6 w-6 ${item.color}`} />
-                  <p className="text-sm font-black text-white sm:text-base">{item.title}</p>
-                  <p className="mt-1.5 text-xs leading-relaxed text-[#555] sm:text-sm">{item.sub}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+          <TestimonialsSection />
         </Reveal>
       </div>
 
@@ -780,5 +688,6 @@ export default function Home() {
         </div>
       </section>
     </div>
+    </>
   )
 }

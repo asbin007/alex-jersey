@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Menu, X, ChevronDown, Crown } from 'lucide-react'
+import { ShoppingCart, Menu, X, ChevronDown } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/lib/utils'
@@ -54,8 +54,12 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-          <div className="w-9 h-9 bg-[#FFD700] rounded-lg flex items-center justify-center shadow-[0_0_16px_rgba(255,215,0,0.5)] group-hover:shadow-[0_0_28px_rgba(255,215,0,0.8)] transition-all">
-            <Crown className="w-5 h-5 text-black" strokeWidth={2.5} />
+          <div className="w-9 h-9 rounded-lg overflow-hidden shadow-[0_0_16px_rgba(255,215,0,0.5)] group-hover:shadow-[0_0_28px_rgba(255,215,0,0.8)] transition-all">
+            <img
+              src="/high-level-description-a-premium-luxury-_ATSl7QwTUJuEiAlkhMqLOw_OUDEm_mAT4WjgotO4XZ0TA.jpg"
+              alt="Alex Jersey Shop logo"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <p className="font-black text-white text-lg leading-none tracking-tight">

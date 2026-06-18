@@ -1,0 +1,16 @@
+{
+  "name": "Alex Jersey Shop",
+  "short_name": "Alex Jersey",
+  "description": "Premium FIFA World Cup 2026 jerseys for all 48 nations. Cash on Delivery across Nepal.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#FFD700",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

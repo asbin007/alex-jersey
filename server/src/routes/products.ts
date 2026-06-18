@@ -90,13 +90,6 @@ router.post('/:id/reviews', auth, [
   const productId = req.params.id;
 
   try {
-    // Enforce purchase requirement: user must have a delivered order containing this product
-    const purchased = await reviewService.hasPurchased(userId, productId);
-    if (!purchased) {
-      res.status(403).json({ error: 'You must have purchased this product before reviewing it' });
-      return;
-    }
-
     const review = await reviewService.createReview(userId, {
       productId,
       rating: req.body.rating,

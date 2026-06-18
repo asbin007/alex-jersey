@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
+import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
 import Navbar from '@/components/layout/Navbar'
@@ -8,6 +9,9 @@ import AdminLayout from '@/components/admin/AdminLayout'
 import DeliveryLayout from '@/components/delivery/DeliveryLayout'
 import ScrollToTop from '@/components/ScrollToTop'
 import FloatingWhatsApp from '@/components/layout/FloatingWhatsApp'
+import AnnouncementBar from '@/components/marketing/AnnouncementBar'
+import LiveOrderFeed from '@/components/marketing/LiveOrderFeed'
+import ExitIntentPopup from '@/components/marketing/ExitIntentPopup'
 
 // Pages
 import Home from '@/pages/Home'
@@ -33,12 +37,15 @@ import DeliveryLogin from '@/pages/delivery/DeliveryLogin'
 function MainLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <AnnouncementBar />
       <Navbar />
       <main className="flex-1">
         <Outlet />
       </main>
       <Footer />
       <FloatingWhatsApp />
+      <LiveOrderFeed />
+      <ExitIntentPopup />
     </div>
   )
 }
@@ -46,43 +53,45 @@ function MainLayout() {
 function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
-    <BrowserRouter>
-      <ScrollToTop />
-      <AuthProvider>
-        <CartProvider>
-          <Routes>
-            {/* Main site */}
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:slug" element={<ProductDetail />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/orders" element={<Orders />} />
-            </Route>
+      <HelmetProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <AuthProvider>
+            <CartProvider>
+              <Routes>
+                {/* Main site */}
+                <Route element={<MainLayout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/products/:slug" element={<ProductDetail />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/orders" element={<Orders />} />
+                </Route>
 
-            {/* Admin — separate layout */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="products" element={<AdminProducts />} />
-              <Route path="products/new" element={<AdminProductForm />} />
-              <Route path="products/:id/edit" element={<AdminProductForm />} />
-              <Route path="orders" element={<AdminOrders />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="delivery" element={<DeliveryManagement />} />
-            </Route>
+                {/* Admin — separate layout */}
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="products" element={<AdminProducts />} />
+                  <Route path="products/new" element={<AdminProductForm />} />
+                  <Route path="products/:id/edit" element={<AdminProductForm />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="delivery" element={<DeliveryManagement />} />
+                </Route>
 
-            {/* Delivery boy portal */}
-            <Route path="/delivery/login" element={<DeliveryLogin />} />
-            <Route path="/delivery" element={<DeliveryLayout />}>
-              <Route index element={<DeliveryOrders />} />
-            </Route>
-          </Routes>
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
+                {/* Delivery boy portal */}
+                <Route path="/delivery/login" element={<DeliveryLogin />} />
+                <Route path="/delivery" element={<DeliveryLayout />}>
+                  <Route index element={<DeliveryOrders />} />
+                </Route>
+              </Routes>
+            </CartProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </HelmetProvider>
     </GoogleOAuthProvider>
   )
 }

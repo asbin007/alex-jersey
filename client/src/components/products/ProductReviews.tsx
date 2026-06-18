@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Star, Loader2, CheckCircle2, Clock, ShoppingBag } from 'lucide-react'
+import { Star, Loader2, CheckCircle2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/context/AuthContext'
 import {
   fetchProductReviews,
@@ -34,46 +35,45 @@ function StarDisplay({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'm
   )
 }
 
-function StarPicker({
-  value,
-  onChange,
-}: {
-  value: number
-  onChange: (n: number) => void
-}) {
+function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   const [hover, setHover] = useState(0)
-
   return (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map(s => {
         const active = s <= (hover || value)
         return (
-          <button
+          <motion.button
             key={s}
             type="button"
             onClick={() => onChange(s)}
             onMouseEnter={() => setHover(s)}
             onMouseLeave={() => setHover(0)}
-            className="rounded p-0.5 transition-transform hover:scale-110"
+            whileTap={{ scale: 0.85 }}
+            whileHover={{ scale: 1.15 }}
+            className="rounded p-0.5"
             aria-label={`Rate ${s} stars`}
           >
             <Star
-              className={`h-7 w-7 sm:h-8 sm:w-8 ${
+              className={`h-7 w-7 sm:h-8 sm:w-8 transition-colors duration-150 ${
                 active ? 'fill-[#FFD700] text-[#FFD700]' : 'fill-[#222] text-[#222]'
               }`}
             />
-          </button>
+          </motion.button>
         )
       })}
     </div>
   )
 }
 
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({ review, index }: { review: Review; index: number }) {
   const initial = review.userName?.charAt(0)?.toUpperCase() ?? '?'
-
   return (
-    <div className="rounded-xl border border-[#1a1a1a] bg-[#080808] p-4 sm:rounded-2xl sm:p-5">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-xl border border-[#1a1a1a] bg-[#080808] p-4 sm:rounded-2xl sm:p-5"
+    >
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFD700] text-sm font-black text-black">
@@ -98,7 +98,7 @@ function ReviewCard({ review }: { review: Review }) {
         </div>
       </div>
       <p className="text-sm leading-relaxed text-[#888]">&ldquo;{review.comment}&rdquo;</p>
-    </div>
+    </motion.div>
   )
 }
 
@@ -110,7 +110,6 @@ export default function ProductReviews({ productId, productRating, reviewCount }
   const [loadingStatus, setLoadingStatus] = useState(false)
 
   const [canReview, setCanReview] = useState(false)
-  const [hasPurchased, setHasPurchased] = useState(false)
   const [hasReviewed, setHasReviewed] = useState(false)
   const [pendingReview, setPendingReview] = useState<Review | null>(null)
 
@@ -135,23 +134,16 @@ export default function ProductReviews({ productId, productRating, reviewCount }
   const loadStatus = useCallback(async () => {
     if (!isAuthenticated) {
       setCanReview(false)
-      setHasPurchased(false)
       setHasReviewed(false)
       setPendingReview(null)
       return
     }
-
     setLoadingStatus(true)
     try {
       const status = await fetchReviewStatus(productId)
-      setHasPurchased(status.hasPurchased)
       setHasReviewed(status.hasReviewed)
       setCanReview(status.canReview)
-      if (status.review) {
-        setPendingReview(normalizeReview(status.review))
-      } else {
-        setPendingReview(null)
-      }
+      setPendingReview(status.review ? normalizeReview(status.review) : null)
     } catch {
       setCanReview(false)
     } finally {
@@ -159,33 +151,18 @@ export default function ProductReviews({ productId, productRating, reviewCount }
     }
   }, [productId, isAuthenticated])
 
-  useEffect(() => {
-    loadReviews()
-  }, [loadReviews])
+  useEffect(() => { loadReviews() }, [loadReviews])
+  useEffect(() => { loadStatus() }, [loadStatus])
 
-  useEffect(() => {
-    loadStatus()
-  }, [loadStatus])
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
-
-    if (rating === 0) {
-      setError('Please select a star rating')
-      return
-    }
-    if (comment.trim().length < 10) {
-      setError('Review must be at least 10 characters')
-      return
-    }
+    if (rating === 0) { setError('Please select a star rating'); return }
+    if (comment.trim().length < 10) { setError('Review must be at least 10 characters'); return }
 
     setSubmitting(true)
     try {
-      const created = await submitProductReview(productId, {
-        rating,
-        comment: comment.trim(),
-      })
+      const created = await submitProductReview(productId, { rating, comment: comment.trim() })
       setSuccess(true)
       setCanReview(false)
       setHasReviewed(true)
@@ -250,57 +227,36 @@ export default function ProductReviews({ productId, productRating, reviewCount }
             <Loader2 className="h-4 w-4 animate-spin" />
             Checking eligibility…
           </div>
-        ) : success || (hasReviewed && pendingReview) ? (
-          <div className="flex items-start gap-3 rounded-xl border border-[#FFD700]/20 bg-[#FFD700]/5 p-4">
-            {pendingReview?.isApproved ? (
+        ) : (success || hasReviewed) ? (
+          <AnimatePresence>
+            <motion.div
+              key="success-state"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              className="flex items-start gap-3 rounded-xl border border-[#FFD700]/20 bg-[#FFD700]/5 p-4"
+            >
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-400" />
-            ) : (
-              <Clock className="mt-0.5 h-5 w-5 shrink-0 text-[#FFD700]" />
-            )}
-            <div>
-              <p className="text-sm font-black text-white">
-                {pendingReview?.isApproved
-                  ? 'Your review is live!'
-                  : 'Review submitted — pending approval'}
-              </p>
-              <p className="mt-1 text-xs text-[#666]">
-                {pendingReview?.isApproved
-                  ? 'Thank you for sharing your feedback with other fans.'
-                  : 'Our team will approve your review shortly. You\'ll see it here once published.'}
-              </p>
-              {pendingReview && !pendingReview.isApproved && (
-                <div className="mt-3 rounded-lg border border-[#1a1a1a] bg-black/40 p-3">
-                  <StarDisplay rating={pendingReview.rating} />
-                  <p className="mt-2 text-sm text-[#777]">&ldquo;{pendingReview.comment}&rdquo;</p>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : !hasPurchased ? (
-          <div className="flex items-start gap-3 rounded-xl border border-[#1a1a1a] bg-[#080808] p-4">
-            <ShoppingBag className="mt-0.5 h-5 w-5 shrink-0 text-[#555]" />
-            <div>
-              <p className="text-sm font-black text-white">Purchase required to review</p>
-              <p className="mt-1 text-xs text-[#666]">
-                You can leave a review after your order for this jersey is delivered.
-              </p>
-              <Link
-                to="/orders"
-                className="mt-2 inline-block text-xs font-black text-[#FFD700] hover:underline"
-              >
-                View my orders →
-              </Link>
-            </div>
-          </div>
+              <div>
+                <p className="text-sm font-black text-white">Your review is live!</p>
+                <p className="mt-1 text-xs text-[#666]">
+                  Thank you for sharing your feedback with other fans.
+                </p>
+                {pendingReview && (
+                  <div className="mt-3 rounded-lg border border-[#1a1a1a] bg-black/40 p-3">
+                    <StarDisplay rating={pendingReview.rating} />
+                    <p className="mt-2 text-sm text-[#777]">&ldquo;{pendingReview.comment}&rdquo;</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         ) : canReview ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <p className="mb-2 text-xs font-black uppercase tracking-widest text-[#555]">
-                Your rating
-              </p>
+              <p className="mb-2 text-xs font-black uppercase tracking-widest text-[#555]">Your rating</p>
               <StarPicker value={rating} onChange={setRating} />
             </div>
-
             <div>
               <label
                 htmlFor="review-comment"
@@ -321,14 +277,11 @@ export default function ProductReviews({ productId, productRating, reviewCount }
                 {comment.length}/500 · min 10 characters
               </p>
             </div>
-
-            {error && (
-              <p className="text-sm font-semibold text-red-400">{error}</p>
-            )}
-
-            <button
+            {error && <p className="text-sm font-semibold text-red-400">{error}</p>}
+            <motion.button
               type="submit"
               disabled={submitting}
+              whileTap={{ scale: 0.97 }}
               className="btn-gold flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-black disabled:opacity-60"
             >
               {submitting ? (
@@ -339,7 +292,7 @@ export default function ProductReviews({ productId, productRating, reviewCount }
               ) : (
                 'Submit Review'
               )}
-            </button>
+            </motion.button>
           </form>
         ) : null}
       </div>
@@ -353,8 +306,8 @@ export default function ProductReviews({ productId, productRating, reviewCount }
         </div>
       ) : reviews.length > 0 ? (
         <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-          {reviews.map(r => (
-            <ReviewCard key={r._id} review={r} />
+          {reviews.map((r, i) => (
+            <ReviewCard key={r._id} review={r} index={i} />
           ))}
         </div>
       ) : (

@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Crown } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -11,8 +10,12 @@ export default function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link to="/" className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 bg-[#FFD700] rounded-lg flex items-center justify-center shadow-[0_0_16px_rgba(255,215,0,0.4)]">
-                <Crown className="w-5 h-5 text-black" strokeWidth={2.5} />
+              <div className="w-9 h-9 rounded-lg overflow-hidden shadow-[0_0_16px_rgba(255,215,0,0.4)]">
+                <img
+                  src="/high-level-description-a-premium-luxury-_ATSl7QwTUJuEiAlkhMqLOw_OUDEm_mAT4WjgotO4XZ0TA.jpg"
+                  alt="Alex Jersey Shop logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <p className="font-black text-white text-lg leading-none">ALEX <span className="gold-text">JERSEY</span></p>

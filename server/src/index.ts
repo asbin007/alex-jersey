@@ -51,11 +51,15 @@ import adminDeliveryRoutes from './routes/admin/delivery';
 import adminWhatsAppRoutes from './routes/admin/whatsapp';
 import adminWhatsAppMessagesRoutes from './routes/admin/whatsappMessages';
 import whatsappWebhookRoutes from './routes/webhooks/whatsapp';
+import { getSitemap } from './controllers/seoController';
 
 // Health check route
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', message: 'Nepal Jersey API is running' });
 });
+
+// Sitemap
+app.get('/sitemap.xml', getSitemap);
 
 // Auth routes
 app.use('/api/auth', authRoutes);
