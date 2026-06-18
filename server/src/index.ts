@@ -53,7 +53,14 @@ import adminWhatsAppMessagesRoutes from './routes/admin/whatsappMessages';
 import whatsappWebhookRoutes from './routes/webhooks/whatsapp';
 import { getSitemap } from './controllers/seoController';
 
-// Health check route
+// ── Health check routes ───────────────────────────────────────────────────────
+// /health  — Render's default health-check path (must return 2xx quickly,
+//             before the DB is ready, so that Render can wake the service)
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
+
+// /api/health — legacy / client-facing alias
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', message: 'Nepal Jersey API is running' });
 });
@@ -99,11 +106,38 @@ import { User } from './models/User';
 import bcrypt from 'bcrypt';
 import { envConfig } from './config/config';
 
+// ── WAHA configuration warning (logged at startup, never blocks boot) ─────────
+function warnWahaConfig(): void {
+  const wahaUrl = process.env.WAHA_URL;
+  if (!wahaUrl) {
+    console.warn(
+      '[WAHA] WARNING: WAHA_URL is not set. WhatsApp notifications will be skipped. ' +
+      'Set WAHA_URL to your deployed WAHA service URL (e.g. https://waha.yourservice.onrender.com).'
+    );
+    return;
+  }
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (wahaUrl.includes('localhost') || wahaUrl.includes('127.0.0.1'))
+  ) {
+    console.warn(
+      `[WAHA] WARNING: WAHA_URL is set to "${wahaUrl}" which is a localhost address. ` +
+      `This will cause ECONNREFUSED errors in production. ` +
+      `Update WAHA_URL to the external URL of your deployed WAHA container.`
+    );
+    return;
+  }
+  console.log(`[WAHA] Configured — WAHA_URL=${wahaUrl}  SESSION=${process.env.WAHA_SESSION || 'default'}`);
+}
+
 async function startServer() {
   try {
+    // Log WAHA config before anything else so it's easy to spot in Render logs
+    warnWahaConfig();
+
     await sequelize.authenticate();
     console.log('Connected to Neon Database (PostgreSQL) via Sequelize');
-    
+
     // alter:true adds missing columns (e.g. googleId) without dropping existing data
     await sequelize.sync({ alter: true });
     console.log('Database synchronized');
@@ -115,7 +149,7 @@ async function startServer() {
     const adminEmail = envConfig.admin.email;
     const adminPassword = envConfig.admin.password;
     const adminUsername = envConfig.admin.username;
-    
+
     const existingAdmin = await User.findOne({ where: { email: adminEmail } });
     if (!existingAdmin) {
       const hashedPassword = await bcrypt.hash(adminPassword as string, 12);

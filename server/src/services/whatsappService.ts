@@ -2,14 +2,34 @@
  * whatsappService.ts
  *
  * Thin wrapper around WAHA (WhatsApp HTTP API) — a self-hosted REST gateway.
- * Docs / Swagger: http://localhost:3000
  *
- * All calls are fire-and-forget. A WhatsApp failure must never block an order.
+ * WAHA_URL must be set to the external URL of your deployed WAHA service.
+ * e.g.  WAHA_URL=https://waha.yourservice.onrender.com
+ *
+ * Never use http://localhost or 127.0.0.1 in production — those addresses
+ * are unreachable inside a Render container.
  */
 
-const WAHA_URL     = process.env.WAHA_URL     || 'http://localhost:3000';
+const WAHA_URL     = process.env.WAHA_URL;
 const SESSION      = process.env.WAHA_SESSION || 'default';
 const WAHA_API_KEY = process.env.WAHA_API_KEY || '';
+
+/**
+ * Guards against a missing or localhost WAHA_URL in production.
+ * Returns a descriptive message if WAHA is misconfigured, or null if OK.
+ */
+function validateWahaConfig(): string | null {
+  if (!WAHA_URL) {
+    return 'WAHA_URL environment variable is not set';
+  }
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (WAHA_URL.includes('localhost') || WAHA_URL.includes('127.0.0.1'))
+  ) {
+    return `WAHA_URL is set to a localhost address (${WAHA_URL}) which is unreachable in production`;
+  }
+  return null;
+}
 
 /**
  * Formats a Nepali phone number to WhatsApp chatId format.
@@ -25,26 +45,58 @@ function toChatId(phone: string): string {
 /**
  * Core send — POSTs to WAHA's /api/sendText endpoint.
  * Exported so the webhook handler can use it for auto-replies.
+ *
+ * Errors are caught and logged but never rethrown — a WhatsApp
+ * failure must never block an order or other business logic.
  */
 export async function sendText(phone: string, text: string): Promise<void> {
+  const configError = validateWahaConfig();
+  if (configError) {
+    console.warn(`[WAHA] Skipping sendText — ${configError}`);
+    return;
+  }
+
   const chatId = toChatId(phone);
+  const url    = `${WAHA_URL}/api/sendText`;
+
+  console.log(`[WAHA] → POST ${url}  chatId=${chatId}  session=${SESSION}`);
 
   try {
-    const res = await fetch(`${WAHA_URL}/api/sendText`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Api-Key': WAHA_API_KEY,
+        ...(WAHA_API_KEY ? { 'X-Api-Key': WAHA_API_KEY } : {}),
       },
       body: JSON.stringify({ session: SESSION, chatId, text }),
     });
 
+    const responseBody = await res.text();
+    console.log(`[WAHA] ← ${res.status} ${res.statusText}  body=${responseBody.slice(0, 200)}`);
+
     if (!res.ok) {
-      const body = await res.text();
-      console.error(`[WAHA] Failed to send to ${chatId}: ${res.status} ${body}`);
+      console.error(
+        `[WAHA] sendText failed — status=${res.status}  chatId=${chatId}  body=${responseBody}`
+      );
     }
-  } catch (err) {
-    console.error('[WAHA] sendText error:', err);
+  } catch (err: any) {
+    // Translate low-level network errors into readable log messages
+    if (err?.code === 'ECONNREFUSED') {
+      console.error(
+        `[WAHA] ECONNREFUSED — Cannot reach WAHA at ${WAHA_URL}. ` +
+        `Ensure WAHA_URL points to a running WAHA instance and is not localhost/127.0.0.1 in production.`
+      );
+    } else if (err?.code === 'ETIMEDOUT' || err?.name === 'TimeoutError') {
+      console.error(`[WAHA] ETIMEDOUT — Request to ${url} timed out.`);
+    } else if (err?.cause?.code === 'ECONNREFUSED') {
+      // Node 18+ wraps the cause
+      console.error(
+        `[WAHA] ECONNREFUSED (nested) — Cannot reach WAHA at ${WAHA_URL}. ` +
+        `Set WAHA_URL to your deployed WAHA service URL.`
+      );
+    } else {
+      console.error(`[WAHA] sendText network error:`, err);
+    }
   }
 }
 
