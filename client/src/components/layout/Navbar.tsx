@@ -111,6 +111,9 @@ export default function Navbar() {
               </button>
               {userMenu && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-[#0f0f0f] border border-[#1f1f1f] rounded-xl overflow-hidden shadow-2xl z-50">
+                  <Link to="/profile" className="flex items-center gap-2 px-4 py-3 text-sm text-[#aaa] hover:text-white hover:bg-white/5 transition-colors">
+                    👤 My Profile
+                  </Link>
                   <Link to="/orders" className="flex items-center gap-2 px-4 py-3 text-sm text-[#aaa] hover:text-white hover:bg-white/5 transition-colors">
                     📦 My Orders
                   </Link>
@@ -161,8 +164,11 @@ export default function Navbar() {
           </div>
           {isAuthenticated && (
             <div className="border-t border-[#111] px-4 py-3 flex items-center justify-between">
+              <Link to="/profile" className="text-sm text-[#aaa] hover:text-white transition-colors font-semibold">
+                👤 Profile
+              </Link>
               <Link to="/orders" className="text-sm text-[#aaa] hover:text-white transition-colors font-semibold">
-                📦 My Orders
+                📦 Orders
               </Link>
               {isAdmin && (
                 <Link to="/admin" className="text-sm text-[#FFD700] font-semibold">

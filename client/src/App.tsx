@@ -22,6 +22,7 @@ import Checkout from '@/pages/Checkout'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
 import Orders from '@/pages/Orders'
+import Profile from '@/pages/Profile'
 
 // Admin Pages
 import AdminDashboard from '@/pages/admin/Dashboard'
@@ -69,6 +70,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/orders" element={<Orders />} />
+                  <Route path="/profile" element={<Profile />} />
                 </Route>
 
                 {/* Admin — separate layout */}
