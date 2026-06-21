@@ -51,6 +51,7 @@ export interface ProductFilters {
   priceMin?: number;
   priceMax?: number;
   jerseyType?: JerseyType;
+  grade?: 'A' | 'B' | null;
   isFeatured?: boolean;
   isLimitedDrop?: boolean;
   search?: string;

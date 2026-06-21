@@ -138,7 +138,7 @@ export interface CreateProductDTO {
   player?: string
   jerseyType: JerseyType
   grade?: 'A' | 'B' | null
-  gradeDescription?: string
+  gradeDescription?: string | null
   sizes: SizeStock[]
   tags: string[]
   isFeatured?: boolean

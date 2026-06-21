@@ -126,7 +126,7 @@ export default function ProductsPage() {
                     <td className="px-4 py-3 hidden md:table-cell">{product.team}</td>
                     <td className="px-4 py-3 hidden lg:table-cell">
                       {product.grade ? (
-                        <Badge variant={product.grade === 'A' ? 'success' : 'secondary'}>
+                        <Badge variant={product.grade === 'A' ? 'success' : 'outline'}>
                           {product.grade} Grade
                         </Badge>
                       ) : (

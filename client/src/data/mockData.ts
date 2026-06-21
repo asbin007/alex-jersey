@@ -18,6 +18,7 @@ export const mockProducts: Product[] = [
     team: 'Argentina',
     player: 'Messi',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 4 },
       { size: 'M', stock: 11 },
@@ -47,6 +48,7 @@ export const mockProducts: Product[] = [
     category: 'worldcup',
     team: 'Argentina',
     jerseyType: 'away',
+    grade: null,
     sizes: [
       { size: 'S', stock: 2 },
       { size: 'M', stock: 5 },
@@ -81,6 +83,7 @@ export const mockProducts: Product[] = [
     team: 'Brazil',
     player: 'Vinicius Jr',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 6 },
       { size: 'M', stock: 14 },
@@ -110,6 +113,7 @@ export const mockProducts: Product[] = [
     category: 'worldcup',
     team: 'Brazil',
     jerseyType: 'away',
+    grade: null,
     sizes: [
       { size: 'S', stock: 3 },
       { size: 'M', stock: 8 },
@@ -143,6 +147,7 @@ export const mockProducts: Product[] = [
     team: 'Portugal',
     player: 'Ronaldo',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 5 },
       { size: 'M', stock: 13 },
@@ -176,6 +181,7 @@ export const mockProducts: Product[] = [
     team: 'France',
     player: 'Mbappe',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 3 },
       { size: 'M', stock: 9 },
@@ -208,6 +214,7 @@ export const mockProducts: Product[] = [
     team: 'England',
     player: 'Bellingham',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 4 },
       { size: 'M', stock: 10 },
@@ -239,6 +246,7 @@ export const mockProducts: Product[] = [
     category: 'worldcup',
     team: 'Germany',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 5 },
       { size: 'M', stock: 11 },
@@ -272,6 +280,7 @@ export const mockProducts: Product[] = [
     team: 'Spain',
     player: 'Yamal',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 4 },
       { size: 'M', stock: 10 },
@@ -303,6 +312,7 @@ export const mockProducts: Product[] = [
     category: 'worldcup',
     team: 'Morocco',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 5 },
       { size: 'M', stock: 12 },
@@ -335,6 +345,7 @@ export const mockProducts: Product[] = [
     team: 'USA',
     player: 'Pulisic',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 6 },
       { size: 'M', stock: 14 },
@@ -368,6 +379,7 @@ export const mockProducts: Product[] = [
     team: 'Netherlands',
     player: 'Van Dijk',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 3 },
       { size: 'M', stock: 8 },
@@ -399,6 +411,7 @@ export const mockProducts: Product[] = [
     category: 'worldcup',
     team: 'Colombia',
     jerseyType: 'home',
+    grade: null,
     sizes: [
       { size: 'S', stock: 4 },
       { size: 'M', stock: 9 },
