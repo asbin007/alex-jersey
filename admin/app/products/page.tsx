@@ -100,6 +100,7 @@ export default function ProductsPage() {
                 <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
                   <th className="px-4 py-3">Product</th>
                   <th className="px-4 py-3 hidden md:table-cell">Team</th>
+                  <th className="px-4 py-3 hidden lg:table-cell">Grade</th>
                   <th className="px-4 py-3">Price</th>
                   <th className="px-4 py-3 hidden sm:table-cell">Stock</th>
                   <th className="px-4 py-3">Status</th>
@@ -123,6 +124,15 @@ export default function ProductsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">{product.team}</td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      {product.grade ? (
+                        <Badge variant={product.grade === 'A' ? 'success' : 'secondary'}>
+                          {product.grade} Grade
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-semibold">{formatCurrency(product.price)}</td>
                     <td className="px-4 py-3 hidden sm:table-cell">
                       <span className={totalStock(product) <= 5 ? 'text-red-400 font-semibold' : ''}>

@@ -11,6 +11,7 @@ import type { CreateProductDTO, Product, ProductCategory, JerseyType, Size } fro
 const CATEGORIES: ProductCategory[] = ['worldcup', 'retro', 'club', 'streetwear']
 const JERSEY_TYPES: JerseyType[] = ['home', 'away', 'third', 'retro', 'custom']
 const SIZES: Size[] = ['S', 'M', 'L', 'XL', 'XXL']
+const GRADES: ('A' | 'B' | null)[] = ['A', 'B', null]
 
 interface SizeRow { size: Size; stock: number }
 const defaultSizes: SizeRow[] = SIZES.map((size) => ({ size, stock: 0 }))
@@ -37,6 +38,8 @@ export default function AddProductModal({ onClose, onSuccess, product }: Props) 
   const [isFeatured, setIsFeatured] = useState(false)
   const [isLimitedDrop, setIsLimitedDrop] = useState(false)
   const [allowCustomization, setAllowCustomization] = useState(false)
+  const [grade, setGrade] = useState<'A' | 'B' | null>(null)
+  const [gradeDescription, setGradeDescription] = useState('')
   const [sizes, setSizes] = useState<SizeRow[]>(defaultSizes)
 
   // Images: existing URLs (from edit) + new file previews
@@ -58,6 +61,8 @@ export default function AddProductModal({ onClose, onSuccess, product }: Props) 
     setTeam(product.team)
     setPlayer(product.player ?? '')
     setJerseyType(product.jerseyType)
+    setGrade(product.grade ?? null)
+    setGradeDescription(product.gradeDescription ?? '')
     setTags(product.tags.join(', '))
     setIsFeatured(product.isFeatured)
     setIsLimitedDrop(product.isLimitedDrop)
@@ -124,6 +129,8 @@ export default function AddProductModal({ onClose, onSuccess, product }: Props) 
         team: team.trim(),
         player: player.trim() || undefined,
         jerseyType,
+        grade,
+        gradeDescription: gradeDescription.trim() || null,
         sizes: sizes.filter((s) => s.stock > 0),
         tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
         isFeatured,
@@ -274,7 +281,30 @@ export default function AddProductModal({ onClose, onSuccess, product }: Props) 
                   {JERSEY_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold">Grade</label>
+                <select value={grade ?? ''} onChange={(e) => setGrade(e.target.value === '' ? null : e.target.value as 'A' | 'B')}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                  <option value="">No Grade</option>
+                  {GRADES.filter(g => g !== null).map((g) => (
+                    <option key={g} value={g}>{g} Grade</option>
+                  ))}
+                </select>
+              </div>
             </div>
+
+            {/* Grade Description */}
+            {grade && (
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold">Grade Description</label>
+                <textarea
+                  value={gradeDescription}
+                  onChange={(e) => setGradeDescription(e.target.value)}
+                  placeholder="Describe the grade characteristics..."
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary h-20 resize-none"
+                />
+              </div>
+            )}
 
             {/* Sizes & Stock */}
             <div>

@@ -44,6 +44,8 @@ export interface CreateProductDTO {
   team: string;
   player?: string;
   jerseyType: JerseyType;
+  grade?: 'A' | 'B' | null;
+  gradeDescription?: string;
   sizes: { size: Size; stock: number }[];
   tags: string[];
   isFeatured?: boolean;
@@ -60,6 +62,7 @@ export interface ProductFilters {
   priceMin?: number;
   priceMax?: number;
   jerseyType?: JerseyType;
+  grade?: 'A' | 'B' | null;
   isFeatured?: boolean;
   isLimitedDrop?: boolean;
   sortBy?: 'price' | 'newest' | 'popular';

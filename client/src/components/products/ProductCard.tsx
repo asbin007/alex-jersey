@@ -65,6 +65,17 @@ export default function ProductCard({ product }: Props) {
               {stock > 0 && stock <= 5 && !product.isLimitedDrop && (
                 <span className="tag-red text-[9px]">Only {stock} left</span>
               )}
+              {product.grade && (
+                <span 
+                  title={product.gradeDescription || (product.grade === 'A' ? 'Premium Quality - Perfect condition' : 'Slight Defects - Minor cosmetic imperfections')}
+                  className={`text-[9px] font-black uppercase tracking-wider ${
+                  product.grade === 'A'
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                    : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                } rounded px-1.5 py-0.5 backdrop-blur-sm cursor-help`}>
+                  {product.grade} Grade
+                </span>
+              )}
             </div>
 
             <span className="absolute right-2 top-2 rounded-md border border-white/10 bg-black/60 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-[#aaa] backdrop-blur-sm sm:right-2.5 sm:top-2.5 sm:text-[9px]">

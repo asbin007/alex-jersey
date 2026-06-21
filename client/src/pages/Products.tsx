@@ -9,6 +9,7 @@ import type { Product } from '@/types'
 import type { JerseyType, Size } from '@/types'
 
 type Sort = 'newest' | 'price' | 'popular'
+type GradeFilter = 'all' | 'A' | 'B'
 
 const nations = [
   'Argentina', 'Brazil', 'France', 'Portugal', 'Spain',
@@ -21,16 +22,18 @@ interface FilterProps {
   hasFilter: boolean
   type: JerseyType | ''
   size: Size | ''
+  grade: GradeFilter
   maxP: number
   onClear: () => void
   onTypeChange: (v: JerseyType | '') => void
   onSizeChange: (v: Size | '') => void
+  onGradeChange: (v: GradeFilter) => void
   onMaxPChange: (v: number) => void
 }
 
 function FilterPanel({
-  hasFilter, type, size, maxP,
-  onClear, onTypeChange, onSizeChange, onMaxPChange,
+  hasFilter, type, size, grade, maxP,
+  onClear, onTypeChange, onSizeChange, onGradeChange, onMaxPChange,
 }: FilterProps) {
   return (
     <>
@@ -44,6 +47,29 @@ function FilterPanel({
             <X className="w-3 h-3" /> Clear all
           </button>
         )}
+      </div>
+
+      <div className="mb-5">
+        <p className="text-[9px] font-black text-[#444] uppercase tracking-[0.2em] mb-3">Grade</p>
+        <div className="space-y-1">
+          {[
+            { v: 'all', l: 'All Grades' },
+            { v: 'A', l: 'A Grade' },
+            { v: 'B', l: 'B Grade' },
+          ].map(g => (
+            <button
+              key={g.v}
+              onClick={() => onGradeChange(g.v as GradeFilter)}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                grade === g.v
+                  ? 'text-[#FFD700] font-bold bg-[#FFD700]/5'
+                  : 'text-[#555] hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {g.l}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mb-5">
@@ -122,6 +148,7 @@ export default function Products() {
   const [team, setTeam] = useState(sp.get('team') || '')
   const [size, setSize] = useState<Size | ''>('')
   const [type, setType] = useState<JerseyType | ''>((sp.get('jerseyType') as JerseyType) || '')
+  const [grade, setGrade] = useState<GradeFilter>((sp.get('grade') as GradeFilter) || 'all')
   const [maxP, setMaxP] = useState(5000)
   const [sort, setSort] = useState<Sort>((sp.get('sortBy') as Sort) || 'newest')
   const [limited, setLimited] = useState(sp.get('limited') === 'true')
@@ -131,6 +158,7 @@ export default function Products() {
     setQ(sp.get('search') || '')
     setTeam(sp.get('team') || '')
     setType((sp.get('jerseyType') as JerseyType) || '')
+    setGrade((sp.get('grade') as GradeFilter) || 'all')
     setSort((sp.get('sortBy') as Sort) || 'newest')
     setLimited(sp.get('limited') === 'true')
   }, [sp])
@@ -142,6 +170,7 @@ export default function Products() {
       team: team || undefined,
       size: (size as Size) || undefined,
       jerseyType: (type as JerseyType) || undefined,
+      grade: grade === 'all' ? undefined : grade,
       isLimitedDrop: limited || undefined,
       priceMax: maxP < 5000 ? maxP : undefined,
       sortBy: sort,
@@ -154,24 +183,25 @@ export default function Products() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [q, team, size, type, maxP, sort, limited])
+  }, [q, team, size, type, grade, maxP, sort, limited])
 
   useEffect(() => {
     const id = setTimeout(load, q ? 400 : 0)
     return () => clearTimeout(id)
   }, [load, q])
 
-  const hasFilter = !!(q || team || type || size || maxP < 5000 || limited)
+  const hasFilter = !!(q || team || type || grade !== 'all' || size || maxP < 5000 || limited)
 
   const clear = () => {
-    setQ(''); setTeam(''); setSize(''); setType(''); setMaxP(5000); setLimited(false)
+    setQ(''); setTeam(''); setSize(''); setType(''); setGrade('all'); setMaxP(5000); setLimited(false)
   }
 
   const filterProps: FilterProps = {
-    hasFilter, type, size, maxP,
+    hasFilter, type, size, grade, maxP,
     onClear: clear,
     onTypeChange: setType,
     onSizeChange: setSize,
+    onGradeChange: setGrade,
     onMaxPChange: setMaxP,
   }
 

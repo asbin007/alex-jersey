@@ -48,6 +48,10 @@ export function buildProductQuery(filters: ProductFilters): any {
     where.isLimitedDrop = filters.isLimitedDrop;
   }
 
+  if (filters.grade !== undefined) {
+    where.grade = filters.grade;
+  }
+
   return where;
 }
 
@@ -149,6 +153,8 @@ export async function createProduct(data: CreateProductDTO): Promise<any> {
       team: data.team,
       player: data.player,
       jerseyType: data.jerseyType,
+      grade: data.grade ?? null,
+      gradeDescription: data.gradeDescription,
       tags: data.tags || [],
       isFeatured: data.isFeatured ?? false,
       isLimitedDrop: data.isLimitedDrop ?? false,

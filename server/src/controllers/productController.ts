@@ -16,6 +16,7 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
       priceMin: req.query.priceMin ? Number(req.query.priceMin) : undefined,
       priceMax: req.query.priceMax ? Number(req.query.priceMax) : undefined,
       jerseyType: req.query.jerseyType as ProductFilters['jerseyType'],
+      grade: req.query.grade as ProductFilters['grade'],
       isFeatured: req.query.isFeatured === 'true' ? true : undefined,
       isLimitedDrop: req.query.isLimitedDrop === 'true' ? true : undefined,
       sortBy: req.query.sortBy as ProductFilters['sortBy'],

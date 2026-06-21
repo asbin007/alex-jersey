@@ -221,6 +221,18 @@ export default function ProductDetail() {
                   {product.player}
                 </span>
               )}
+              {product.grade && (
+                <span 
+                  title={product.gradeDescription || (product.grade === 'A' ? 'Premium Quality - Perfect condition' : 'Slight Defects - Minor cosmetic imperfections')}
+                  className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider cursor-help ${
+                    product.grade === 'A'
+                      ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                      : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                  }`}
+                >
+                  {product.grade} Grade
+                </span>
+              )}
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-4">
@@ -268,9 +280,28 @@ export default function ProductDetail() {
               )}
             </div>
 
-            <p className="text-[#666] text-sm leading-relaxed mb-6 sm:mb-7">
+            <p className="text-[#666] text-sm leading-relaxed mb-6 sm:mb-7 whitespace-pre-line">
               {product.description}
             </p>
+
+            {product.grade && (
+              <div className={`mb-6 p-4 rounded-xl border ${
+                product.grade === 'A' ? 'bg-green-500/5 border-green-500/20' : 'bg-orange-500/5 border-orange-500/20'
+              }`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-xs font-black uppercase tracking-wider ${
+                    product.grade === 'A' ? 'text-green-400' : 'text-orange-400'
+                  }`}>
+                    {product.grade} Grade Quality
+                  </span>
+                </div>
+                <p className="text-xs text-[#888] leading-relaxed">
+                  {product.gradeDescription || (product.grade === 'A' 
+                    ? 'This is a premium quality jersey with no manufacturing defects. It features perfect stitching, material quality, and authentic design.' 
+                    : 'This jersey has minor cosmetic defects or irregularities (like small stains or scuffs). It has no functional issues and is offered at a discounted price.')}
+                </p>
+              </div>
+            )}
 
             {/* Size selector */}
             <div className="mb-6">

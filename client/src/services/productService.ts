@@ -12,6 +12,7 @@ function buildParams(filters: ProductFilters = {}): Record<string, string | numb
   if (filters.priceMin != null) params.priceMin = filters.priceMin
   if (filters.priceMax != null) params.priceMax = filters.priceMax
   if (filters.jerseyType) params.jerseyType = filters.jerseyType
+  if (filters.grade) params.grade = filters.grade
   if (filters.isFeatured) params.isFeatured = 'true'
   if (filters.isLimitedDrop) params.isLimitedDrop = 'true'
   if (filters.sortBy) params.sortBy = filters.sortBy

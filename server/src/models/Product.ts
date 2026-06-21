@@ -13,6 +13,8 @@ export class Product extends Model {
   public team!: string;
   public player!: string | null;
   public jerseyType!: string;
+  public grade!: 'A' | 'B' | null;
+  public gradeDescription?: string;
   public tags!: string[];
   public isFeatured!: boolean;
   public isLimitedDrop!: boolean;
@@ -78,6 +80,15 @@ Product.init(
     jerseyType: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    grade: {
+      type: DataTypes.ENUM('A', 'B'),
+      allowNull: true,
+      defaultValue: null,
+    },
+    gradeDescription: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
     tags: {
       type: DataTypes.ARRAY(DataTypes.STRING),

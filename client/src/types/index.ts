@@ -76,6 +76,8 @@ export interface Product {
   team: string;
   player?: string;
   jerseyType: JerseyType;
+  grade: 'A' | 'B' | null;
+  gradeDescription?: string;
   sizes: SizeStock[];
   tags: string[];
   isFeatured: boolean;
