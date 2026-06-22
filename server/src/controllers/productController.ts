@@ -89,7 +89,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
     const product = await productService.createProduct(req.body);
     res.status(201).json(product);
   } catch (error: any) {
-    if (error.code === 11000) {
+    if (error.message?.includes('unique') || error.message?.includes('duplicate')) {
       res.status(409).json({ error: 'A product with this name already exists' });
       return;
     }
@@ -119,7 +119,7 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
 
     res.json(product);
   } catch (error: any) {
-    if (error.code === 11000) {
+    if (error.message?.includes('unique') || error.message?.includes('duplicate')) {
       res.status(409).json({ error: 'A product with this name already exists' });
       return;
     }

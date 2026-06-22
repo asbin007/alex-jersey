@@ -57,7 +57,7 @@ router.post('/', auth, createReviewValidation, async (req: Request, res: Respons
 
     res.status(201).json(review);
   } catch (error: any) {
-    if (error.code === 11000) {
+    if (error.message?.includes('already reviewed')) {
       res.status(409).json({ error: 'You have already reviewed this product' });
       return;
     }

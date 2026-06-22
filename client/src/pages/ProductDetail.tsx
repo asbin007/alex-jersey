@@ -10,12 +10,14 @@ import SEO from '@/components/SEO'
 import StockUrgency from '@/components/marketing/StockUrgency'
 import WishlistButton from '@/components/products/WishlistButton'
 import WhatsAppShare from '@/components/marketing/WhatsAppShare'
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import type { Size, Product } from '@/types'
 import { fetchProduct, fetchRelatedProducts } from '@/services/productService'
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { addToCart } = useCart()
+  const { add: addRecent, items: recentItems } = useRecentlyViewed()
 
   const [product, setProduct] = useState<Product | undefined>(undefined)
   const [related, setRelated] = useState<Product[]>([])
@@ -43,6 +45,7 @@ export default function ProductDetail() {
     fetchProduct(slug)
       .then(prod => {
         setProduct(prod)
+        addRecent(prod)
         setLoading(false)
         fetchRelatedProducts(prod._id)
           .then(setRelated)
@@ -445,6 +448,20 @@ export default function ProductDetail() {
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
               {related.map(p => (
+                <ProductCard key={p._id} product={p} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recently viewed */}
+        {recentItems.filter(p => p._id !== product._id).length > 0 && (
+          <div className="mt-14 sm:mt-20">
+            <h2 className="text-xl sm:text-2xl font-black text-white mb-5 sm:mb-6">
+              Recently Viewed
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+              {recentItems.filter(p => p._id !== product._id).slice(0, 4).map(p => (
                 <ProductCard key={p._id} product={p} />
               ))}
             </div>

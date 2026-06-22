@@ -118,6 +118,8 @@ export default function ProductReviews({ productId, productRating, reviewCount }
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [filterStar, setFilterStar] = useState<number | null>(null)
+  const [sortBy, setSortBy] = useState<'newest' | 'highest' | 'lowest'>('newest')
 
   const loadReviews = useCallback(async () => {
     setLoadingReviews(true)
@@ -305,11 +307,47 @@ export default function ProductReviews({ productId, productRating, reviewCount }
           ))}
         </div>
       ) : reviews.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-          {reviews.map((r, i) => (
-            <ReviewCard key={r._id} review={r} index={i} />
-          ))}
-        </div>
+        <>
+          {/* Filter & Sort controls */}
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              {[null, 5, 4, 3, 2, 1].map(s => (
+                <button
+                  key={s ?? 'all'}
+                  onClick={() => setFilterStar(s)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+                    filterStar === s
+                      ? 'bg-[#FFD700] text-black'
+                      : 'bg-[#111] text-[#666] hover:text-white'
+                  }`}
+                >
+                  {s === null ? 'All' : `${s}★`}
+                </button>
+              ))}
+            </div>
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as typeof sortBy)}
+              className="bg-[#111] border border-[#1a1a1a] rounded-lg px-2.5 py-1 text-xs text-[#888] focus:outline-none"
+            >
+              <option value="newest">Newest</option>
+              <option value="highest">Highest</option>
+              <option value="lowest">Lowest</option>
+            </select>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+            {reviews
+              .filter(r => filterStar === null || r.rating === filterStar)
+              .sort((a, b) => {
+                if (sortBy === 'highest') return b.rating - a.rating
+                if (sortBy === 'lowest') return a.rating - b.rating
+                return 0
+              })
+              .map((r, i) => (
+                <ReviewCard key={r._id} review={r} index={i} />
+              ))}
+          </div>
+        </>
       ) : (
         <div className="rounded-2xl border border-dashed border-[#1a1a1a] py-12 text-center">
           <Star className="mx-auto mb-3 h-8 w-8 text-[#333]" />
