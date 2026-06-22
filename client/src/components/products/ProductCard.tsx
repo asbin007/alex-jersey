@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Product } from '@/types'
 import { useCart } from '@/context/CartContext'
+import WishlistButton from './WishlistButton'
 
 interface Props { product: Product }
 
@@ -81,6 +82,10 @@ export default function ProductCard({ product }: Props) {
             <span className="absolute right-2 top-2 rounded-md border border-white/10 bg-black/60 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-[#aaa] backdrop-blur-sm sm:right-2.5 sm:top-2.5 sm:text-[9px]">
               {kitLabels[product.jerseyType] ?? product.jerseyType}
             </span>
+
+            <div className="absolute right-2 top-8 sm:right-2.5 sm:top-9">
+              <WishlistButton productId={product._id} size="sm" />
+            </div>
 
             <div className="absolute inset-x-0 bottom-0 p-2.5 sm:p-3">
               <p className="mb-0.5 truncate text-[9px] font-black uppercase tracking-widest text-[#FFD700] sm:text-[10px]">

@@ -28,7 +28,7 @@ export function auth(req: Request, res: Response, next: NextFunction): void {
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || 'default-secret'
+      process.env.JWT_SECRET!
     ) as DecodedToken;
     req.user = decoded;
     next();

@@ -6,6 +6,7 @@ import { OrderItem } from './OrderItem';
 import { StatusHistoryEntry } from './StatusHistoryEntry';
 import { Review } from './Review';
 import { WhatsAppMessage } from './WhatsAppMessage';
+import { Wishlist } from './Wishlist';
 
 // User <-> Order (customer)
 User.hasMany(Order, { foreignKey: 'userId', as: 'orders' });
@@ -31,6 +32,14 @@ OrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 Product.hasMany(Review, { foreignKey: 'productId', as: 'productReviews', onDelete: 'CASCADE' });
 Review.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 
+// User <-> Wishlist
+User.hasMany(Wishlist, { foreignKey: 'userId', as: 'wishlistItems' });
+Wishlist.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+// Product <-> Wishlist
+Product.hasMany(Wishlist, { foreignKey: 'productId', as: 'wishlistEntries' });
+Wishlist.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
+
 // Order <-> OrderItem
 Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'items', onDelete: 'CASCADE' });
 OrderItem.belongsTo(Order, { foreignKey: 'orderId', as: 'order' });
@@ -48,4 +57,5 @@ export {
   StatusHistoryEntry,
   Review,
   WhatsAppMessage,
+  Wishlist,
 };

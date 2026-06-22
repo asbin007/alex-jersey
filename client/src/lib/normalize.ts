@@ -20,8 +20,8 @@ export function normalizeProduct(raw: Raw): Product {
     team: raw.team ?? '',
     player: raw.player ?? undefined,
     jerseyType: raw.jerseyType ?? 'home',
-    grade: raw.grade ?? null,
-    gradeDescription: raw.gradeDescription ?? undefined,
+    grade: raw.grade || null,
+    gradeDescription: raw.gradeDescription || undefined,
     sizes: Array.isArray(raw.sizes)
       ? raw.sizes.map((s: Raw) => ({ size: s.size, stock: Number(s.stock ?? 0) }))
       : [],

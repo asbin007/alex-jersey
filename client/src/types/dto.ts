@@ -37,11 +37,14 @@ export interface CreateProductDTO {
   team: string;
   player?: string;
   jerseyType: JerseyType;
+  grade?: 'A' | 'B' | null;
+  gradeDescription?: string | null;
   sizes: { size: Size; stock: number }[];
   tags: string[];
   isFeatured?: boolean;
   isLimitedDrop?: boolean;
   allowCustomization?: boolean;
+  isActive?: boolean;
 }
 
 export interface ProductFilters {

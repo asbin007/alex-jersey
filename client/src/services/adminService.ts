@@ -46,7 +46,7 @@ export async function fetchAdminProducts(): Promise<Product[]> {
   return (data as Record<string, unknown>[]).map(normalizeProduct)
 }
 
-export async function updateAdminProduct(id: string, payload: Partial<Product>): Promise<Product> {
+export async function updateAdminProduct(id: string, payload: Partial<CreateProductDTO>): Promise<Product> {
   const { data } = await api.put(`/admin/products/${id}`, payload)
   return normalizeProduct(data)
 }

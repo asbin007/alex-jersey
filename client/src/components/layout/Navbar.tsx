@@ -114,6 +114,9 @@ export default function Navbar() {
                   <Link to="/profile" className="flex items-center gap-2 px-4 py-3 text-sm text-[#aaa] hover:text-white hover:bg-white/5 transition-colors">
                     👤 My Profile
                   </Link>
+                  <Link to="/wishlist" className="flex items-center gap-2 px-4 py-3 text-sm text-[#aaa] hover:text-white hover:bg-white/5 transition-colors">
+                    ❤️ Wishlist
+                  </Link>
                   <Link to="/orders" className="flex items-center gap-2 px-4 py-3 text-sm text-[#aaa] hover:text-white hover:bg-white/5 transition-colors">
                     📦 My Orders
                   </Link>
@@ -166,6 +169,9 @@ export default function Navbar() {
             <div className="border-t border-[#111] px-4 py-3 flex items-center justify-between">
               <Link to="/profile" className="text-sm text-[#aaa] hover:text-white transition-colors font-semibold">
                 👤 Profile
+              </Link>
+              <Link to="/wishlist" className="text-sm text-[#aaa] hover:text-white transition-colors font-semibold">
+                ❤️ Wishlist
               </Link>
               <Link to="/orders" className="text-sm text-[#aaa] hover:text-white transition-colors font-semibold">
                 📦 Orders

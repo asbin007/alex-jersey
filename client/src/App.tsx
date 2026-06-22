@@ -3,11 +3,13 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
+import { WishlistProvider } from '@/context/WishlistContext'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import AdminLayout from '@/components/admin/AdminLayout'
 import DeliveryLayout from '@/components/delivery/DeliveryLayout'
 import ScrollToTop from '@/components/ScrollToTop'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import FloatingWhatsApp from '@/components/layout/FloatingWhatsApp'
 import AnnouncementBar from '@/components/marketing/AnnouncementBar'
 import LiveOrderFeed from '@/components/marketing/LiveOrderFeed'
@@ -23,6 +25,8 @@ import Login from '@/pages/Login'
 import Register from '@/pages/Register'
 import Orders from '@/pages/Orders'
 import Profile from '@/pages/Profile'
+import Wishlist from '@/pages/Wishlist'
+import NotFound from '@/pages/NotFound'
 
 // Admin Pages
 import AdminDashboard from '@/pages/admin/Dashboard'
@@ -57,8 +61,10 @@ function App() {
       <HelmetProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <ErrorBoundary>
           <AuthProvider>
             <CartProvider>
+              <WishlistProvider>
               <Routes>
                 {/* Main site */}
                 <Route element={<MainLayout />}>
@@ -71,6 +77,7 @@ function App() {
                   <Route path="/register" element={<Register />} />
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
                 </Route>
 
                 {/* Admin — separate layout */}
@@ -89,9 +96,14 @@ function App() {
                 <Route path="/delivery" element={<DeliveryLayout />}>
                   <Route index element={<DeliveryOrders />} />
                 </Route>
+
+                {/* 404 */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
+              </WishlistProvider>
             </CartProvider>
           </AuthProvider>
+          </ErrorBoundary>
         </BrowserRouter>
       </HelmetProvider>
     </GoogleOAuthProvider>

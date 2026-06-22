@@ -92,6 +92,13 @@ const createProductValidation = [
     .optional()
     .isBoolean()
     .withMessage('allowCustomization must be a boolean'),
+  body('grade')
+    .optional({ values: 'null' })
+    .isIn(['A', 'B', null])
+    .withMessage('Grade must be A, B, or null'),
+  body('gradeDescription')
+    .optional({ values: 'null' })
+    .isString(),
 ];
 
 /**
@@ -147,6 +154,13 @@ const updateProductValidation = [
     .optional()
     .isInt({ min: 0 })
     .withMessage('Stock must be a non-negative integer'),
+  body('grade')
+    .optional({ values: 'null' })
+    .isIn(['A', 'B', null])
+    .withMessage('Grade must be A, B, or null'),
+  body('gradeDescription')
+    .optional({ values: 'null' })
+    .isString(),
 ];
 
 // GET /api/admin/products - List all products (including inactive)

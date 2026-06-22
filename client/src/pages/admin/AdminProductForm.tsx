@@ -54,6 +54,8 @@ export default function AdminProductForm() {
   const [isFeatured, setIsFeatured] = useState(false)
   const [isLimitedDrop, setIsLimitedDrop] = useState(false)
   const [allowCustomization, setAllowCustomization] = useState(false)
+  const [grade, setGrade] = useState<'A' | 'B' | null>(null)
+  const [gradeDescription, setGradeDescription] = useState('')
   const [sizes, setSizes] = useState<SizeStock[]>(
     SIZES.map((size) => ({ size, stock: 0 }))
   )
@@ -92,6 +94,8 @@ export default function AdminProductForm() {
         setIsFeatured(p.isFeatured)
         setIsLimitedDrop(p.isLimitedDrop)
         setAllowCustomization(p.allowCustomization)
+        setGrade(p.grade ?? null)
+        setGradeDescription(p.gradeDescription ?? '')
         setExistingImageUrls(p.images)
         // Merge existing sizes with defaults
         const merged = SIZES.map((s) => {
@@ -183,6 +187,8 @@ export default function AdminProductForm() {
         team: team.trim(),
         player: player.trim() || undefined,
         jerseyType,
+        grade,
+        gradeDescription: gradeDescription.trim() || null,
         sizes: sizes.filter((s) => s.stock > 0),
         tags: tags
           .split(',')
@@ -429,6 +435,30 @@ export default function AdminProductForm() {
                 ))}
               </select>
             </InputField>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <InputField label="Grade">
+              <select
+                value={grade ?? ''}
+                onChange={(e) => setGrade(e.target.value === '' ? null : e.target.value as 'A' | 'B')}
+                className={inputClass}
+              >
+                <option value="">No Grade</option>
+                <option value="A">A Grade</option>
+                <option value="B">B Grade</option>
+              </select>
+            </InputField>
+            {grade && (
+              <InputField label="Grade Description">
+                <textarea
+                  value={gradeDescription}
+                  onChange={(e) => setGradeDescription(e.target.value)}
+                  placeholder="Describe the grade characteristics..."
+                  className={`${inputClass} resize-none h-[42px]`}
+                />
+              </InputField>
+            )}
           </div>
 
           <InputField label="Tags">
