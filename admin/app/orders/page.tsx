@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, ChevronDown, Loader2, Truck } from 'lucide-react'
+import { Search, ChevronDown, Loader2, Truck, Download } from 'lucide-react'
 import AdminLayout from '../adminLayout/adminLayout'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -85,9 +85,19 @@ export default function OrdersPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-black">Orders</h1>
-          <p className="text-xs text-muted-foreground">
-            Auto-refreshes every 30s · Last: {lastRefresh.toLocaleTimeString('en-NP', { hour: '2-digit', minute: '2-digit' })}
-          </p>
+          <div className="flex items-center gap-3">
+            <a
+              href={`${process.env.NEXT_PUBLIC_API_URL || 'https://alex-jersey-server.onrender.com'}/api/admin/orders/export`}
+              target="_blank"
+              rel="noopener"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-sm font-semibold hover:bg-muted transition-colors"
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </a>
+            <p className="text-xs text-muted-foreground">
+              Auto-refreshes every 30s · Last: {lastRefresh.toLocaleTimeString('en-NP', { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
         </div>
         <p className="text-sm text-muted-foreground">{orders.length} total orders</p>
       </div>

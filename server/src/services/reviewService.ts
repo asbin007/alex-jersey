@@ -160,6 +160,28 @@ export async function getReviewById(reviewId: string): Promise<any | null> {
 }
 
 /**
+ * Update a review (owner only). Allows changing rating and comment.
+ */
+export async function updateReview(
+  reviewId: string,
+  userId: string,
+  data: { rating?: number; comment?: string }
+): Promise<any | null> {
+  const review = await Review.findByPk(reviewId);
+  if (!review) return null;
+  if (review.userId !== userId) throw new Error('Access denied');
+
+  const updateData: any = {};
+  if (data.rating !== undefined) updateData.rating = data.rating;
+  if (data.comment !== undefined) updateData.comment = data.comment;
+
+  await review.update(updateData);
+  await updateProductRating(review.productId);
+
+  return review;
+}
+
+/**
  * Delete a review (admin or owner action).
  * Recalculates and updates the product's average rating and review count after deletion.
  */

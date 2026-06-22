@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Package, ChevronDown, ChevronUp } from 'lucide-react'
+import { Package, ChevronDown, ChevronUp, XCircle } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
-import { fetchMyOrders } from '@/services/orderService'
+import { fetchMyOrders, cancelOrder } from '@/services/orderService'
 import { Badge } from '@/components/ui/badge'
 import { OrderRowSkeleton } from '@/components/ui/skeleton'
 import type { Order, OrderStatus } from '@/types'
@@ -25,7 +25,7 @@ const statusEmoji: Record<OrderStatus, string> = {
   cancelled: '❌',
 }
 
-function OrderRow({ order }: { order: Order }) {
+function OrderRow({ order, onCancel }: { order: Order; onCancel: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -104,6 +104,16 @@ function OrderRow({ order }: { order: Order }) {
             {order.customer.note && <p>📝 {order.customer.note}</p>}
           </div>
 
+          {/* Cancel button for pending orders */}
+          {order.status === 'pending' && (
+            <button
+              onClick={() => { if (confirm('Cancel this order? Stock will be restored.')) onCancel(order._id) }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/30 text-red-400 text-sm font-bold hover:bg-red-500/10 transition-colors"
+            >
+              <XCircle className="w-4 h-4" /> Cancel Order
+            </button>
+          )}
+
           {/* Timeline */}
           <div>
             <p className="text-[10px] font-black text-[#444] uppercase tracking-widest mb-3">
@@ -147,6 +157,15 @@ export default function Orders() {
       .finally(() => setLoading(false))
   }, [isAuthenticated])
 
+  const handleCancel = async (orderId: string) => {
+    try {
+      const updated = await cancelOrder(orderId)
+      setOrders(prev => prev.map(o => o._id === orderId ? updated : o))
+    } catch (err: any) {
+      alert(err?.response?.data?.error || 'Failed to cancel order')
+    }
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-black pt-24 flex items-center justify-center">
@@ -185,7 +204,7 @@ export default function Orders() {
         ) : (
           <div className="space-y-3">
             {orders.map(order => (
-              <OrderRow key={order._id} order={order} />
+              <OrderRow key={order._id} order={order} onCancel={handleCancel} />
             ))}
           </div>
         )}

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { auth } from '../middleware/auth';
-import { createOrder, getMyOrders, getOrderById } from '../controllers/orderController';
+import { createOrder, getMyOrders, getOrderById, cancelOrder } from '../controllers/orderController';
 
 const router = Router();
 
@@ -85,5 +85,8 @@ router.get('/my-orders', getMyOrders);
 
 // GET /api/orders/:id - Get a single order by ID (owner or admin)
 router.get('/:id', getOrderById);
+
+// PATCH /api/orders/:id/cancel - Cancel a pending order (customer)
+router.patch('/:id/cancel', cancelOrder);
 
 export default router;

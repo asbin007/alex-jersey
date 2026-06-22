@@ -7,6 +7,7 @@ import {
   updateOrderStatus,
   updatePaymentStatus,
   assignDeliveryBoy,
+  exportOrders,
 } from '../../controllers/orderController';
 
 const router = Router();
@@ -21,6 +22,9 @@ const updateStatusValidation = [
 
 // GET /api/admin/orders
 router.get('/', getAllOrders);
+
+// GET /api/admin/orders/export — CSV export
+router.get('/export', exportOrders);
 
 // PATCH /api/admin/orders/:id/status
 router.patch('/:id/status', updateStatusValidation, updateOrderStatus);

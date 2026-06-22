@@ -20,3 +20,8 @@ export async function fetchMyOrders(): Promise<Order[]> {
   const { data } = await api.get('/orders/my-orders')
   return (data as Record<string, unknown>[]).map(normalizeOrder)
 }
+
+export async function cancelOrder(orderId: string): Promise<Order> {
+  const { data } = await api.patch(`/orders/${orderId}/cancel`)
+  return normalizeOrder(data)
+}

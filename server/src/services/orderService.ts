@@ -448,6 +448,55 @@ export async function assignDeliveryBoy(
 }
 
 /**
+ * Cancel an order (customer self-service).
+ * Only pending orders can be cancelled. Restores stock for all items.
+ */
+export async function cancelOrder(
+  orderId: string,
+  userId: string
+): Promise<any | null> {
+  return sequelize.transaction(async (t) => {
+    const order = await Order.findByPk(orderId, {
+      include: [{ model: OrderItem, as: 'items' }],
+      transaction: t,
+    }) as any;
+
+    if (!order) throw new ValidationError('Order not found');
+    if (order.userId !== userId) throw new ValidationError('Access denied');
+    if (order.status !== 'pending') {
+      throw new ValidationError('Only pending orders can be cancelled');
+    }
+
+    // Restore stock for each item
+    for (const item of order.items) {
+      await SizeStock.increment('stock', {
+        by: item.quantity,
+        where: { productId: item.productId, size: item.size },
+        transaction: t,
+      });
+    }
+
+    await order.update({ status: 'cancelled' }, { transaction: t });
+
+    await StatusHistoryEntry.create({
+      orderId: order.id,
+      status: 'cancelled',
+      note: 'Cancelled by customer',
+    }, { transaction: t });
+
+    const updatedOrder = await Order.findByPk(orderId, {
+      include: [
+        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product' }] },
+        { model: StatusHistoryEntry, as: 'statusHistory' },
+      ],
+      transaction: t,
+    });
+
+    return updatedOrder;
+  });
+}
+
+/**
  * Get orders assigned to a specific delivery boy.
  * If deliveryBoyId is null (admin calling), returns all orders that have any delivery boy assigned.
  */

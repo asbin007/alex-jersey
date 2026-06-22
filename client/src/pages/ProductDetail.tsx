@@ -8,6 +8,7 @@ import ProductReviews from '@/components/products/ProductReviews'
 import { ProductDetailSkeleton } from '@/components/ui/skeleton'
 import SEO from '@/components/SEO'
 import StockUrgency from '@/components/marketing/StockUrgency'
+import WishlistButton from '@/components/products/WishlistButton'
 import WhatsAppShare from '@/components/marketing/WhatsAppShare'
 import type { Size, Product } from '@/types'
 import { fetchProduct, fetchRelatedProducts } from '@/services/productService'
@@ -183,6 +184,9 @@ export default function ProductDetail() {
                   </span>
                 )}
                 {disc && <span className="tag-red">-{disc}%</span>}
+              </div>
+              <div className="absolute top-3 right-3">
+                <WishlistButton productId={product._id} />
               </div>
             </div>
 

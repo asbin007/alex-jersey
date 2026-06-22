@@ -146,6 +146,61 @@ export async function assignDeliveryBoy(req: Request, res: Response): Promise<vo
   }
 }
 /**
+ * PATCH /api/orders/:id/cancel
+ * Cancel a pending order (customer self-service).
+ */
+export async function cancelOrder(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+    const order = await orderService.cancelOrder(id, userId);
+    res.json(order);
+  } catch (error: any) {
+    if (error instanceof ValidationError) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+    res.status(500).json({ error: 'Failed to cancel order' });
+  }
+}
+
+/**
+ * GET /api/admin/orders/export
+ * Export orders as CSV (admin only).
+ */
+export async function exportOrders(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await orderService.getAllOrders({ limit: 10000 });
+    const orders = result.data;
+
+    const header = 'Order Number,Customer,Phone,City,Items,Subtotal,Delivery,Total,Status,Payment,Date';
+    const rows = orders.map((o: any) => {
+      const items = o.items?.map((i: any) => `${i.productName}(${i.size})x${i.quantity}`).join('; ') || '';
+      return [
+        o.orderNumber,
+        `"${o.customerName}"`,
+        o.customerPhone,
+        `"${o.customerCity}"`,
+        `"${items}"`,
+        o.subtotal,
+        o.deliveryCharge,
+        o.total,
+        o.status,
+        o.paymentStatus,
+        o.createdAt?.toISOString?.()?.split('T')[0] || '',
+      ].join(',');
+    });
+
+    const csv = [header, ...rows].join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=orders.csv');
+    res.send(csv);
+  } catch {
+    res.status(500).json({ error: 'Failed to export orders' });
+  }
+}
+
+/**
  * PATCH /api/admin/orders/:id/status
  * Updates the status of an order (admin only).
  */

@@ -87,6 +87,47 @@ router.get('/product/:id', [
 });
 
 /**
+ * PUT /api/reviews/:id
+ * Update a review (owner only).
+ */
+router.put('/:id', auth, [
+  param('id').isUUID().withMessage('Valid review ID is required'),
+  body('rating')
+    .optional()
+    .isInt({ min: 1, max: 5 })
+    .withMessage('Rating must be an integer between 1 and 5'),
+  body('comment')
+    .optional()
+    .trim()
+    .isLength({ min: 10 })
+    .withMessage('Comment must be at least 10 characters'),
+], async (req: Request, res: Response): Promise<void> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array() });
+    return;
+  }
+
+  try {
+    const review = await reviewService.updateReview(req.params.id, req.user!.userId, {
+      rating: req.body.rating,
+      comment: req.body.comment,
+    });
+    if (!review) {
+      res.status(404).json({ error: 'Review not found' });
+      return;
+    }
+    res.json(review);
+  } catch (error: any) {
+    if (error.message === 'Access denied') {
+      res.status(403).json({ error: error.message });
+      return;
+    }
+    res.status(500).json({ error: 'Failed to update review' });
+  }
+});
+
+/**
  * DELETE /api/reviews/:id
  * Delete a review — allowed for the review's owner or an admin.
  * Requires authentication. Admin can delete any review; a customer can only delete their own.
