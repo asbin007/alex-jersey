@@ -146,14 +146,14 @@ export default function ProductDetail() {
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
             <div
-              className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#080808] border border-[#1a1a1a] group"
+              className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#080808] border border-[#1a1a1a] group cursor-zoom-in"
               style={{ aspectRatio: '1' }}
             >
               <motion.img
                 key={imgIdx}
                 src={product.images[imgIdx]}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 initial={{ opacity: 0, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, ease: 'easeOut' }}

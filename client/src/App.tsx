@@ -9,6 +9,8 @@ import Footer from '@/components/layout/Footer'
 import AdminLayout from '@/components/admin/AdminLayout'
 import DeliveryLayout from '@/components/delivery/DeliveryLayout'
 import ScrollToTop from '@/components/ScrollToTop'
+import ScrollToTopButton from '@/components/layout/ScrollToTop'
+import MobileBottomNav from '@/components/layout/MobileBottomNav'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import FloatingWhatsApp from '@/components/layout/FloatingWhatsApp'
 import AnnouncementBar from '@/components/marketing/AnnouncementBar'
@@ -44,11 +46,13 @@ function MainLayout() {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <AnnouncementBar />
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 pb-14 lg:pb-0 page-enter">
         <Outlet />
       </main>
       <Footer />
       <FloatingWhatsApp />
+      <MobileBottomNav />
+      <ScrollToTopButton />
       <LiveOrderFeed />
       <ExitIntentPopup />
     </div>
